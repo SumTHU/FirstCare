@@ -1,0 +1,344 @@
+{
+  "case_metadata": {
+    "cmaid": "1673770",
+    "doi": "10.3760/cma.j.cn115682-20220621-04284",
+    "title": "发热待查的诊治1例 (T细胞淋巴瘤合并嗜血细胞综合征)",
+    "url": "https://rs.yiigle.com/cmaid/1673770",
+    "reporting_institution": "西安交通大学第二附属医院急诊科",
+    "reporting_department": "急诊科",
+    "authors": [
+      "马青",
+      "裴红红"
+    ],
+    "keywords": [
+      "发热待查",
+      "T细胞淋巴瘤",
+      "嗜血细胞综合征",
+      "成人Still病",
+      "误诊防范"
+    ]
+  },
+  "structured_abstract": {
+    "symptoms_and_signs": "患者女，49岁，主因进食冰葡萄后发热伴恶心、呕吐2天急诊入院。体检：T 39.1℃，P 108次/min，R 22次/min，BP 112/68 mmHg，SpO2 92%。双侧腋窝及腹股沟可触及数枚肿大淋巴结，躯干散在红色斑丘疹。",
+    "diagnosis_and_treatment": "患者有成人Still病(AOSD)史6年长期服泼尼松。急诊起初拟诊急性胃肠炎予抗感染治疗无效，复查血小板进行性下降至54*10^9/L，血清铁蛋白>13472 ng/ml。经多学科会诊行骨髓穿刺及淋巴结活检，确诊为外周T细胞淋巴瘤合并嗜血细胞综合征(HLH)。予地塞米松联合依托泊苷化疗48小时后体温恢复正常。",
+    "clinical_outcome": "患者一般情况好转，低氧纠正，转血液内科继续规范化疗，门诊随访病情平稳。"
+  },
+  "clinical_record": {
+    "patient_demographics": {
+      "age": 49,
+      "gender": "female",
+      "admission_route": "急诊抢救室"
+    },
+    "chief_complaint": {
+      "symptom": "进食冰葡萄后发热伴恶心、呕吐2天",
+      "duration": "2天"
+    },
+    "history_of_present_illness": {
+      "trigger": "进食冰箱冷藏冰葡萄后数小时",
+      "peak_temperature_c": 40.0,
+      "chills": true,
+      "associated_symptoms": [
+        "腹胀",
+        "恶心",
+        "非喷射性胃内容物呕吐",
+        "活动后气短",
+        "轻度纳差"
+      ]
+    },
+    "past_medical_history": {
+      "diagnosed_diseases": [
+        "成人Still病 (Adult-Onset Still's Disease, AOSD) 6年"
+      ],
+      "medications": [
+        "醋酸泼尼松片 1.25 mg/d 维持治疗"
+      ],
+      "allergies": "无已知药物过敏史"
+    },
+    "physical_examination": {
+      "vital_signs": {
+        "temperature_c": 39.1,
+        "heart_rate_bpm": 108,
+        "respiratory_rate_bpm": 22,
+        "blood_pressure_systolic_mmhg": 112,
+        "blood_pressure_diastolic_mmhg": 68,
+        "spo2_percent": 92.0
+      },
+      "lymph_nodes": "双侧腋窝及腹股沟可触及数枚黄豆至蚕豆大小淋巴结，质韧活动度欠佳，轻压痛",
+      "skin_and_mucosa": "躯干及双上肢近端可见散在淡红色斑丘疹，压之褪色",
+      "chest_and_abdomen": "双肺呼吸音粗，未闻及明显干湿啰音；心律齐；腹平软，上腹部轻压痛，无反跳痛及肌紧张，肝脾肋下未触及"
+    },
+    "initial_emergency_management": {
+      "presumed_initial_diagnosis": "发热查因：急性胃肠炎？上呼吸道感染？",
+      "initial_interventions": [
+        "头孢曲松经验性抗感染",
+        "补液对症退热"
+      ],
+      "response_to_initial_treatment": "治疗48小时高热持续不退，最高体温仍达40.2℃，并新发鼻衄（流鼻血）"
+    },
+    "auxiliary_examinations": {
+      "blood_routine": {
+        "wbc_count_10e9_l": 3.12,
+        "neutrophil_percent": 82.4,
+        "hemoglobin_g_l": 98.0,
+        "platelet_count_10e9_l": 54.0
+      },
+      "inflammatory_and_ferritin": {
+        "crp_mg_l": 112.5,
+        "procalcitonin_ng_ml": 1.84,
+        "serum_ferritin_ng_ml": 13472.0
+      },
+      "coagulation": {
+        "fibrinogen_g_l": 1.15,
+        "d_dimer_mg_l": 6.8
+      },
+      "pathology_and_bone_marrow": {
+        "bone_marrow_aspirate": "骨髓涂片见多核组织细胞吞噬成熟红细胞、有核红细胞及血小板（嗜血现象明显）",
+        "lymph_node_biopsy": "淋巴结病理免疫组化：CD3(+), CD43(+), Ki-67 75%(+)，符合外周T细胞淋巴瘤"
+      }
+    },
+    "differential_diagnosis": [
+      {
+        "suspected_disease": "急性感染性胃肠炎",
+        "exclusion_rationales": "虽有生冷饮食诱因及呕吐，但抗感染无效，伴两系血细胞减少、极高铁蛋白及低氧血症，超出普通胃肠炎范畴。"
+      },
+      {
+        "suspected_disease": "成人Still病 (AOSD) 原发病复发",
+        "exclusion_rationales": "虽有发热皮疹及高铁蛋白，但骨髓见明确嗜血细胞，血小板骤降及纤维蛋白原降低，且病理示T细胞淋巴瘤，推翻单纯风湿复发。"
+      },
+      {
+        "suspected_disease": "严重脓毒症/感染性休克",
+        "exclusion_rationales": "血培养、降钙素原不高且抗生素升级无效，激素与依托泊苷后迅速退热，病理证实恶性肿瘤继发HLH。"
+      }
+    ],
+    "final_diagnoses": [
+      "外周T细胞淋巴瘤 (Peripheral T-Cell Lymphoma)",
+      "噬血细胞综合征 (Hemophagocytic Lymphohistiocytosis, HLH)",
+      "低氧血症 (Acute Hypoxemia)",
+      "成人Still病 (AOSD) 稳定期"
+    ],
+    "treatment_course_and_regimen": {
+      "emergency_phase": "给氧纠正低氧、多科紧急会诊（急诊+血液+风湿+ICU）",
+      "definitive_therapy": "地塞米松 10 mg/d 联合 依托泊苷 (VP-16) 100 mg/次 诱导化疗",
+      "temperature_control_time": "化疗开始后48小时内体温完全降至正常，鼻衄停止"
+    },
+    "clinical_outcome_and_follow_up": "病情缓解，出院转入血液内科规范疗程随访，2个月复查血小板及铁蛋白恢复正常。",
+    "discussion_and_clinical_pearls": "【临床警示】切勿因生冷饮食诱因将发热归咎于急性胃肠炎，切勿因既往AOSD病史形成思维定势；查体发现浅表淋巴结肿大与SpO2 92%低氧血症是打破误诊的关键突破口。"
+  },
+  "jev_deductive_verification_schema": {
+    "confirmation_threshold_tau_f": 0.8,
+    "candidate_clinical_propositions": [
+      {
+        "prop_id": "F1",
+        "source_cmaid": "1673770",
+        "element_category": "核心症状与起病诱因",
+        "proposition_zh": "患者存在高热（39–40℃）伴寒战，且合并腹胀、恶心呕吐等消化道症状（或生冷饮食诱因）",
+        "proposition_en": "High fever (39-40°C) with chills and GI symptoms (bloating, nausea/vomiting after cold food)",
+        "mention_keywords": [
+          "发烧",
+          "发热",
+          "高烧",
+          "40",
+          "39",
+          "寒战",
+          "吐",
+          "呕吐",
+          "恶心",
+          "腹胀",
+          "冰葡萄"
+        ],
+        "affirm_keywords": [
+          "发烧",
+          "发热",
+          "高烧",
+          "40",
+          "39",
+          "寒战",
+          "吐",
+          "呕吐",
+          "腹胀",
+          "冰葡萄"
+        ],
+        "negate_keywords": [
+          "不吐",
+          "无呕吐",
+          "没发烧"
+        ],
+        "uncertain_keywords": [
+          "不确定是否发烧"
+        ],
+        "is_red_flag": false,
+        "clarification_question_zh": "请问您近两天最高体温达到多少度？是否有寒战畏寒或恶心呕吐？",
+        "follow_up_chip": "伴随恶心呕吐/进食冰冷食物诱因"
+      },
+      {
+        "prop_id": "F2",
+        "source_cmaid": "1673770",
+        "element_category": "关键既往病史与用药",
+        "proposition_zh": "患者既往有成人Still病（AOSD）等风湿免疫病史，或长期口服泼尼松等激素",
+        "proposition_en": "Past history of Adult-Onset Still's Disease (AOSD) or long-term corticosteroid (prednisone) use",
+        "mention_keywords": [
+          "Still",
+          "斯蒂尔",
+          "风湿",
+          "免疫",
+          "泼尼松",
+          "激素"
+        ],
+        "affirm_keywords": [
+          "有成人Still病",
+          "确诊过成人Still病",
+          "斯蒂尔",
+          "吃泼尼松",
+          "服泼尼松",
+          "既往有成人Still病"
+        ],
+        "negate_keywords": [
+          "无风湿病史",
+          "没吃过激素",
+          "既往体健"
+        ],
+        "uncertain_keywords": [
+          "不确定有没有风湿"
+        ],
+        "is_red_flag": false,
+        "clarification_question_zh": "请问您既往是否有过风湿免疫疾病（如成人Still病、红斑狼疮），是否在服用激素（如泼尼松）？",
+        "follow_up_chip": "既往有成人Still病史且服泼尼松"
+      },
+      {
+        "prop_id": "F3",
+        "source_cmaid": "1673770",
+        "element_category": "特征性体表查体",
+        "proposition_zh": "患者双侧腋窝、腹股沟或颈部可触及肿大淋巴结，或躯干四肢有散在红色皮疹",
+        "proposition_en": "Palpable enlarged lymph nodes (axillary/inguinal) or scattered red skin rash on trunk/limbs",
+        "mention_keywords": [
+          "淋巴结",
+          "腋窝",
+          "腋下",
+          "腹股沟",
+          "包块",
+          "肿块",
+          "皮疹",
+          "红疹"
+        ],
+        "affirm_keywords": [
+          "摸到肿大淋巴结",
+          "腋窝摸到肿大",
+          "腋下摸到肿块",
+          "红色皮疹",
+          "起红疹",
+          "散在红疹"
+        ],
+        "negate_keywords": [
+          "无淋巴结肿大",
+          "无皮疹",
+          "没摸到包块"
+        ],
+        "uncertain_keywords": [
+          "还没注意腋下有没有",
+          "没注意有没有淋巴结",
+          "不清楚有没有肿块"
+        ],
+        "is_red_flag": false,
+        "clarification_question_zh": "请您触摸一下双侧腋下、脖子或大腿根部，能否摸到黄豆到蚕豆大小的肿大包块或淋巴结？身上是否有皮疹？",
+        "follow_up_chip": "腋窝/腹股沟摸到肿大淋巴结且有散在红疹"
+      },
+      {
+        "prop_id": "F4",
+        "source_cmaid": "1673770",
+        "element_category": "急危红旗征（急诊抢救）",
+        "proposition_zh": "【急危红旗征】患者伴随明显气短呼吸困难，或指夹血氧饱和度 SpO2 <= 92%",
+        "proposition_en": "[RED FLAG] Shortness of breath / dyspnea or pulse oximetry SpO2 <= 92% (acute hypoxia)",
+        "mention_keywords": [
+          "气短",
+          "喘",
+          "呼吸困难",
+          "血氧",
+          "SpO2",
+          "92%",
+          "98%",
+          "氧饱和度"
+        ],
+        "affirm_keywords": [
+          "觉得气短",
+          "明显气短",
+          "伴随气短",
+          "喘不上气",
+          "血氧92%",
+          "测血氧只有92%",
+          "血氧低",
+          "SpO2 92%",
+          "呼吸困难"
+        ],
+        "negate_keywords": [
+          "不气短",
+          "无气短",
+          "呼吸正常",
+          "血氧正常98%",
+          "血氧正常"
+        ],
+        "uncertain_keywords": [
+          "没测过血氧",
+          "不知道血氧多少"
+        ],
+        "is_red_flag": true,
+        "clarification_question_zh": "【急危预警核查】您平卧或走动时是否有明显胸闷、喘憋或呼吸困难？若有指夹血氧仪，目前静息血氧是多少？",
+        "follow_up_chip": "伴随气短且测得血氧偏低(SpO2 92%)"
+      },
+      {
+        "prop_id": "F5",
+        "source_cmaid": "1673770",
+        "element_category": "重症鉴别与治疗反应",
+        "proposition_zh": "【重症红旗征】常规抗感染/退热治疗后仍反复高热，或出现鼻出血、血小板骤降、极高铁蛋白",
+        "proposition_en": "[RED FLAG] Refractory fever despite antibiotics/steroids, or epistaxis / severe thrombocytopenia (HLH sign)",
+        "mention_keywords": [
+          "抗生素",
+          "头孢",
+          "抗感染",
+          "消炎药",
+          "无效",
+          "反复高热",
+          "鼻出血",
+          "流鼻血",
+          "血小板",
+          "铁蛋白"
+        ],
+        "affirm_keywords": [
+          "抗感染无效",
+          "抗感染治疗无效",
+          "消炎药完全没退烧",
+          "消炎药没用",
+          "反复高烧",
+          "鼻出血",
+          "流鼻血",
+          "血小板降低",
+          "铁蛋白高"
+        ],
+        "negate_keywords": [
+          "尚未用药",
+          "吃药后退烧",
+          "无鼻出血"
+        ],
+        "uncertain_keywords": [
+          "刚吃药还不确定效果"
+        ],
+        "is_red_flag": true,
+        "clarification_question_zh": "近两天使用过退烧药或抗生素后，高热是否能有效缓解？是否有牙龈出血或鼻出血等异常？",
+        "follow_up_chip": "抗感染治疗无效且出现流鼻血/血小板降低"
+      }
+    ],
+    "actual_involved_specialties": [
+      {
+        "specialty": "急诊科 (Emergency Medicine)",
+        "role": "首诊抢救、纠正低氧血症 (SpO2 92%) 与急危重症监护"
+      },
+      {
+        "specialty": "血液内科 (Hematology)",
+        "role": "骨髓穿刺/淋巴结活检确诊 T 细胞淋巴瘤合并嗜血综合征 (HLH)，执行依托泊苷化疗"
+      },
+      {
+        "specialty": "风湿免疫科 (Rheumatology)",
+        "role": "鉴别排除原发成人 Still 病 (AOSD) 复发"
+      }
+    ]
+  }
+}

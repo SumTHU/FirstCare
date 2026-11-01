@@ -1,0 +1,12 @@
+# 敏感凭据与缓存不入库
+.env
+__pycache__/
+*.pyc
+.workbuddy/
+
+# 原始语料体积过大（约 2.7G），不入库；demo HTML 已内嵌全部语料
+data/
+out/cache/
+
+# 非项目产出的第三方文件
+ECIR_2027_IR_for_Good .pdf

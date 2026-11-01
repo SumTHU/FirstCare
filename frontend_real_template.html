@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FirstCare · 真实管线版 · 低幻觉导诊核验台</title>
+<style>
+/* ============ 设计 Token（与蓝本 medir_triage_ui.html 完全一致） ============ */
+:root{
+  --bg:#F9EEE5;          /* 底·浅红米 */
+  --panel:#FFF9F4;       /* 卡·红调米白 */
+  --ink:#2E150C;         /* 墨·深棕红 */
+  --ink-2:#96685A;
+  --line:#F0D4C6;        /* 边·红调 */
+  --brand:#BE2D1E;       /* 主·朱红 */
+  --brand-ink:#7E1F12;
+  --brand-bg:#FBE7DC;
+  --sup:#187A44;         /* 确·支撑绿 */
+  --sup-bg:#E5F4EB;
+  --gap:#9A6300;         /* 疑·存疑琥珀 */
+  --gap-bg:#FBF2DC;
+  --abs:#5F6E7C;         /* 断·硬闸灰 */
+  --abs-bg:#EAEFF3;
+  --flag:#C02231;        /* 警·红旗红 */
+  --flag-bg:#FAE8EA;
+  --mono:"JetBrains Mono","IBM Plex Mono",Consolas,"Courier New",monospace;
+  --sans:"Microsoft YaHei","PingFang SC","Noto Sans SC","Source Han Sans SC",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13.5px;line-height:1.6}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+.num{font-family:var(--mono);font-size:.92em;letter-spacing:-.02em}
+
+/* 科技感：全网网格底纹 */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(190,45,30,.032) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(190,45,30,.032) 1px,transparent 1px);
+  background-size:44px 44px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 78%);
+          mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 78%)}
+.topbar,.layout,.site-footer{position:relative;z-index:1}
+
+/* ============ 顶栏 ============ */
+.topbar{background:rgba(255,249,244,.86);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);padding:10px 20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:30}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.brand-mark{width:30px;height:30px;flex:none;display:flex;align-items:center;justify-content:center;
+  border-radius:7px;filter:drop-shadow(0 2px 6px rgba(190,45,30,.42))}
+.brand-mark svg{display:block}
+.brand small{font-weight:400;color:var(--ink-2);font-size:12px;margin-left:2px}
+.sys-badges{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{font-size:11px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--ink-2);background:var(--bg)}
+.badge.warn{background:var(--gap-bg);color:var(--gap);border-color:transparent}
+.badge.ok{background:var(--sup-bg);color:var(--sup);border-color:transparent}
+
+/* 语言切换（真实可用） */
+.lang-switch{display:inline-flex;border:1px solid var(--line);border-radius:99px;overflow:hidden;background:var(--bg)}
+.lang-switch button{border:none;background:transparent;padding:4px 12px;font-size:12px;font-weight:700;color:var(--ink-2);transition:.15s}
+.lang-switch button.on{background:var(--brand);color:#fff;box-shadow:0 0 10px rgba(190,45,30,.4)}
+
+/* ============ 布局 ============ */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.18fr);
+  gap:14px;padding:16px 20px 26px;max-width:1500px;margin:0 auto;align-items:stretch}
+
+/* ============ 顶栏迷你图例与开关 ============ */
+.lg-item{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--ink-2)}
+.lg-dot{display:inline-block;width:9px;height:9px;border-radius:3px}
+
+/* ============ 通用面板（科技感：顶部渐变光边） ============ */
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}
+.col-left > .card:first-child,
+.col-right > .card:last-child{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+.col-left > .card:first-child .chat{flex:1 1 auto;max-height:none;min-height:0}
+.col-right > .card:last-child .tabbody{flex:1 1 auto;max-height:none;min-height:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative;
+  box-shadow:0 1px 3px rgba(126,31,18,.06);container-type:inline-size}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;z-index:1;
+  background:linear-gradient(90deg,transparent 6%,rgba(190,45,30,.5) 50%,transparent 94%)}
+.card-body{padding:10px 13px}
+.card-head{padding:8px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.card-head h2{font-size:15px;font-weight:700;color:var(--brand-ink)}
+
+/* 演化时间线 */
+.tl-wrap{display:flex;align-items:stretch;gap:6px;flex-wrap:wrap}
+.tl-node{flex:1 1 158px;min-width:158px;background:var(--bg);border:1px solid var(--line);border-radius:10px;
+  padding:8px 10px 9px;display:flex;flex-direction:column;gap:6px}
+.tl-node.now{border:1.5px solid var(--brand);background:var(--brand-bg);padding:8.5px 10.5px 9.5px}
+.tl-head{display:flex;align-items:center;gap:6px;min-width:0}
+.tl-no{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--brand);background:var(--brand-bg);
+  padding:1px 6px;border-radius:4px;flex:none}
+.tl-node.now .tl-no{background:var(--brand);color:#fff}
+.tl-round{font-size:12px;font-weight:700;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-node.now .tl-round{color:var(--brand-ink)}
+.tl-live{width:7px;height:7px;border-radius:50%;background:var(--brand);flex:none;margin-left:auto;animation:livePulse 1.8s ease-in-out infinite}
+.tl-bar{display:flex;height:6px;border-radius:99px;overflow:hidden;background:var(--abs-bg);flex:none}
+.tl-bar i{display:block;height:100%;transform-origin:left;animation:grow .6s ease-out backwards;animation-delay:calc(var(--d,0s) + .15s)}
+.tl-bar .b-sup{background:var(--sup)}
+.tl-bar .b-gap{background:var(--gap)}
+.tl-bar .b-abs{background:var(--abs)}
+.tl-counts{display:flex;gap:9px;font-size:11.5px;flex-wrap:wrap}
+.tl-counts span{display:inline-flex;align-items:center;gap:4px}
+.tl-counts b{font-family:var(--mono);font-weight:700;font-size:12px}
+.tl-urg{font-size:11px;font-weight:700;align-self:flex-start;padding:2px 9px;border-radius:99px;
+  background:var(--panel);border:1px solid var(--line);color:var(--ink-2)}
+.tl-urg.hot{background:var(--flag-bg);border-color:var(--flag);color:var(--flag)}
+.tl-node.now .tl-urg{border-color:var(--brand);color:var(--brand-ink)}
+.tl-node.now .tl-urg.hot{background:var(--flag);border-color:var(--flag);color:#fff}
+.tl-arrow{align-self:center;color:var(--ink-2);opacity:.55;flex:none;display:flex}
+.tl-node,.tl-arrow{opacity:0;animation:tlIn .45s ease forwards;animation-delay:var(--d,0s)}
+.tl-node.now{animation-name:tlIn,tlPulse;animation-duration:.45s,2.2s;animation-timing-function:ease,ease-in-out;
+  animation-iteration-count:1,infinite;animation-fill-mode:forwards,none;
+  animation-delay:var(--d,0s),calc(var(--d,0s) + .5s)}
+@keyframes tlIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes tlPulse{0%,100%{box-shadow:0 0 0 0 rgba(190,45,30,.22)}50%{box-shadow:0 0 0 9px rgba(190,45,30,0)}}
+@keyframes livePulse{0%,100%{box-shadow:0 0 0 0 rgba(190,45,30,.35)}50%{box-shadow:0 0 0 5px rgba(190,45,30,0)}}
+@media (prefers-reduced-motion:reduce){.tl-node,.tl-arrow{animation:none;opacity:1}}
+
+/* ============ 左栏：患者交互 ============ */
+.col-left .card-preset{order:2}
+.preset-group{padding:9px 14px;border-bottom:1px solid var(--line)}
+.preset-group:last-child{border-bottom:none}
+.preset-label{font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.preset-label .lg{width:8px;height:8px;border-radius:2px;flex:none}
+.preset-row{display:flex;gap:8px;flex-wrap:wrap}
+.chip-btn{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:5px 11px;font-size:12px;
+  color:var(--ink);transition:.15s;line-height:1.5;white-space:normal;text-align:left}
+.chip-btn:hover{border-color:var(--brand);color:var(--brand-ink);background:var(--brand-bg);box-shadow:0 0 8px rgba(190,45,30,.18)}
+.chip-btn.fill{border-style:dashed}
+
+.chat{max-height:380px;overflow-y:auto;padding:11px 13px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.msg{max-width:92%;border-radius:12px;padding:9px 12px;font-size:13px}
+.msg.user{align-self:flex-end;background:linear-gradient(135deg,#D8402B,#A01F12);color:#fff;border-bottom-right-radius:4px;
+  box-shadow:0 2px 8px rgba(190,45,30,.3)}
+.msg.bot{align-self:flex-start;background:var(--bg);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg .en-sub{color:var(--ink-2);font-size:11.5px;font-style:italic;margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
+.msg.verdict{max-width:100%;padding:12px 14px;border-radius:12px}
+.verdict .v-head{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.verdict .v-route{margin-top:5px;font-size:12.5px;font-weight:600}
+.verdict .v-tip{margin-top:5px;font-size:11px;opacity:.8}
+.msg.verdict.alarm{background:var(--flag-bg);border:1.5px solid var(--flag);color:var(--flag);
+  box-shadow:0 0 14px rgba(192,34,49,.22)}
+.msg.verdict.calm{background:var(--sup-bg);border:1.5px solid var(--sup);color:var(--sup);
+  box-shadow:0 0 14px rgba(24,122,68,.18)}
+.empty-state{padding:18px 18px;text-align:center;color:var(--ink-2);font-size:12.5px}
+.empty-state b{color:var(--brand-ink)}
+
+.urg-banner{margin:0 14px;border-radius:10px;padding:10px 13px;font-size:12.5px}
+.urg-banner summary{list-style:none;cursor:pointer;display:flex;gap:9px;align-items:flex-start;font-weight:600}
+.urg-banner summary::-webkit-details-marker{display:none}
+.urg-banner .ic{flex:none;font-size:15px;line-height:1.4}
+.ub-caret{margin-left:auto;font-size:11px;transition:transform .2s;flex:none;align-self:center}
+.urg-banner[open] .ub-caret{transform:rotate(90deg)}
+.ub-body{margin-top:9px;border-top:1px dashed currentColor;padding-top:8px;font-weight:400;opacity:.92}
+.ub-t{font-size:11px;font-weight:700;opacity:.75;margin-bottom:4px}
+.ub-item{font-size:12px;margin-bottom:3px;display:flex;gap:7px;align-items:baseline;flex-wrap:wrap}
+.ub-item.dim{color:var(--ink-2)}
+.urg-banner.calm{background:var(--brand-bg);color:var(--brand-ink);border:1px solid #BFDED9}
+.urg-banner.alarm{background:var(--flag-bg);color:var(--flag);border:1px solid #EFAAB1}
+.urg-banner.alarm{animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(192,34,49,.18)}50%{box-shadow:0 0 0 7px rgba(192,34,49,0)}}
+
+.chips-zone{padding:8px 14px;border-top:1px solid var(--line)}
+.chips-zone .zt{font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:8px}
+.chips-zone .zt em{font-style:normal;color:var(--abs);font-family:var(--mono)}
+.input-bar{display:flex;gap:8px;padding:9px 14px;border-top:1px solid var(--line);background:#FBFCFD}
+.input-bar input{flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13px;font-family:inherit;color:var(--ink);background:var(--panel);transition:.15s}
+.input-bar input:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px rgba(190,45,30,.14)}
+.btn-send{background:linear-gradient(135deg,#D8402B,#A01F12);color:#fff;border:none;border-radius:9px;padding:0 18px;font-size:13px;font-weight:600;
+  box-shadow:0 2px 8px rgba(190,45,30,.32);transition:.15s}
+.btn-send:hover{box-shadow:0 3px 12px rgba(190,45,30,.48);filter:brightness(1.06)}
+
+/* ============ 右栏：四步透明面板 ============ */
+.rank-item{padding:9px 0;border-bottom:1px dashed var(--line)}
+.rank-item:last-child{border-bottom:none}
+.rank-line{display:flex;align-items:baseline;gap:8px;font-size:12.5px}
+.rank-line .rk{font-family:var(--mono);font-size:11px;color:var(--ink-2);flex:none}
+.rank-line .cmaid{font-family:var(--mono);font-size:11.5px;color:var(--brand-ink)}
+.rank-line .score{margin-left:auto;font-family:var(--mono);font-weight:700;font-size:12px}
+.meter{height:5px;background:var(--abs-bg);border-radius:99px;margin-top:6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--brand);border-radius:99px;transform-origin:left;animation:grow .7s ease-out;
+  box-shadow:0 0 6px rgba(190,45,30,.35)}
+@keyframes grow{from{transform:scaleX(0)}}
+.reason{font-size:11.5px;color:var(--ink-2);margin-top:4px}
+
+.prop-card{border:1px solid var(--line);border-left-width:4px;border-radius:9px;padding:10px 13px;margin-bottom:9px;background:var(--panel)}
+.prop-card:last-child{margin-bottom:0}
+.prop-card.supported{border-left-color:var(--sup)}
+.prop-card.gap{border-left-color:var(--gap)}
+.prop-card.absent{border-left-color:var(--abs);background:var(--abs-bg)}
+.prop-top{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.prop-id{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--ink-2);padding:2px 7px;border-radius:4px;flex:none}
+.prop-zh{font-size:12.5px;font-weight:600;flex:1;min-width:200px}
+.role-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;flex:none}
+.role-badge.supported{background:var(--sup-bg);color:var(--sup)}
+.role-badge.gap{background:var(--gap-bg);color:var(--gap)}
+.role-badge.absent{background:var(--abs);color:#fff}
+.rf-tag{font-size:10.5px;font-weight:700;color:#fff;background:var(--flag);padding:2px 7px;border-radius:99px;flex:none;
+  box-shadow:0 0 8px rgba(192,34,49,.35)}
+.prop-en{font-size:12px;color:var(--ink-2);font-style:italic;margin-top:3px}
+
+/* 红旗报警弹窗 */
+.rf-modal{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;
+  background:rgba(80,8,2,.48);backdrop-filter:blur(3px)}
+.rf-modal[hidden]{display:none}
+.rf-modal-box{width:min(430px,92vw);background:var(--panel);border:2px solid var(--flag);border-radius:14px;
+  padding:20px 22px;box-shadow:0 12px 44px rgba(150,20,10,.5),0 0 0 5px rgba(192,34,49,.14);animation:rfmIn .32s ease}
+@keyframes rfmIn{from{transform:translateY(16px) scale(.95);opacity:0}to{transform:none;opacity:1}}
+.rfm-head{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:800;color:var(--flag);letter-spacing:.02em}
+.rfm-head .ic{font-size:24px;animation:rfmPulse 1s ease-in-out infinite}
+@keyframes rfmPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
+.rfm-sub{font-size:12.5px;color:var(--ink-2);margin:8px 0 10px}
+.rfm-item{background:var(--flag-bg);border:1px solid rgba(192,34,49,.25);border-left:3px solid var(--flag);
+  border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--flag-ink, var(--ink));margin-bottom:7px}
+.rfm-advice{font-size:12.5px;color:var(--ink);background:var(--bg);border-radius:8px;padding:9px 12px;margin:4px 0 14px;line-height:1.6}
+.rfm-btn{display:block;width:100%;background:var(--flag);color:#fff;border:none;border-radius:9px;
+  padding:10px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(192,34,49,.4)}
+.rfm-btn:hover{filter:brightness(1.08)}
+@media (prefers-reduced-motion: reduce){
+  .rf-modal-box,.rfm-head .ic{animation:none}
+}
+
+.block-note{font-size:11.5px;color:var(--abs);font-weight:700;margin-top:7px;display:flex;align-items:center;gap:5px}
+.tau-note{font-size:11px;color:var(--ink-2);margin-bottom:10px}
+.tau-note .num{color:var(--brand);font-weight:700}
+
+.ans-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px}
+.meta-tag{font-size:11px;padding:3px 9px;border-radius:6px;background:var(--bg);border:1px solid var(--line);color:var(--ink-2)}
+.meta-tag .num{color:var(--ink);font-weight:600}
+.meta-tag.scrub{background:var(--gap-bg);color:var(--gap);border-color:transparent}
+details.step{border:1px solid var(--line);border-radius:9px;margin-bottom:8px;background:var(--panel);overflow:hidden}
+details.step:last-child{margin-bottom:0}
+details.step summary{list-style:none;cursor:pointer;padding:9px 13px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:9px}
+details.step summary::-webkit-details-marker{display:none}
+details.step summary .sno{font-family:var(--mono);font-size:11px;color:var(--brand);background:var(--brand-bg);padding:1px 6px;border-radius:4px}
+details.step summary .caret{margin-left:auto;color:var(--ink-2);transition:.18s;font-size:11px}
+details.step[open] summary .caret{transform:rotate(90deg)}
+details.step .sbody{padding:2px 14px 12px;font-size:12.5px;color:var(--ink);white-space:pre-line}
+details.step.iv .sbody{color:var(--gap)}
+.en-answer{margin-top:11px;padding-top:10px;border-top:1px dashed var(--line);font-size:11.5px;color:var(--ink-2);font-style:italic}
+.cite-row{margin-top:11px;font-size:11.5px;color:var(--ink-2)}
+.cite-row a{color:var(--brand);text-decoration:none;font-family:var(--mono)}
+.cite-row a:hover{text-decoration:underline}
+
+/* 加载态 */
+.skeleton{padding:6px 0}
+.sk-line{height:12px;border-radius:5px;background:linear-gradient(90deg,var(--abs-bg) 25%,#F6F8FA 45%,var(--abs-bg) 65%);background-size:280% 100%;animation:sk 1.2s linear infinite;margin-bottom:10px}
+.sk-line.w60{width:60%}.sk-line.w80{width:80%}.sk-line.w45{width:45%}
+@keyframes sk{from{background-position:120% 0}to{background-position:-80% 0}}
+.load-note{font-size:11.5px;color:var(--ink-2);background:var(--brand-bg);border-radius:8px;padding:8px 11px;margin-bottom:12px}
+
+/* 顶栏迷你按钮 */
+.btn-mini{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--ink-2)}
+.btn-mini:hover{border-color:var(--brand);color:var(--brand-ink)}
+/* 右栏合并单卡：标签导航 */
+.tabbar{display:flex;flex-wrap:nowrap;gap:4px;padding:8px 10px 0;border-bottom:2px solid var(--line)}
+.tab{border:none;background:transparent;padding:7px 4px;font-size:13px;font-weight:700;color:#6E4A3A;
+  border-bottom:3px solid transparent;border-radius:10px 10px 0 0;display:flex;align-items:center;
+  justify-content:center;gap:5px;flex:1 1 0;min-width:0;
+  white-space:nowrap;cursor:pointer;transition:.15s}
+.tab .t-label{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.tab:hover{color:var(--brand-ink);background:#FDF2EA}
+.tab.active{color:var(--brand);border-bottom-color:var(--brand);background:var(--brand-bg);
+  box-shadow:inset 0 0 14px rgba(190,45,30,.08),0 0 12px rgba(190,45,30,.14)}
+.tabpane{display:none}
+.tabpane.active{display:block}
+.dot-new{display:none;width:8px;height:8px;border-radius:50%;background:var(--brand);flex:none;
+  box-shadow:0 0 0 3px rgba(190,45,30,.18)}
+.tab.fresh .dot-new{display:inline-block}
+.tabbody{padding:10px 13px;max-height:520px;overflow-y:auto}
+.step-no{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--brand);background:var(--brand-bg);
+  padding:2px 8px;border-radius:5px;flex:none}
+@container (max-width:560px){
+  .tab{font-size:11.5px;gap:4px;padding:6px 3px}
+  .step-no{font-size:10.5px;padding:2px 5px}
+}
+@container (max-width:470px){
+  .step-no{display:none}
+}
+.rank-item .meter i{background:var(--brand)}
+.scrollbar{scrollbar-width:thin;scrollbar-color:#CBB492 transparent}
+.scrollbar::-webkit-scrollbar{width:8px;height:8px}
+.scrollbar::-webkit-scrollbar-thumb{background:#D8C2A2;border-radius:99px}
+.scrollbar::-webkit-scrollbar-thumb:hover{background:#BD9F76}
+.scrollbar::-webkit-scrollbar-track{background:transparent}
+
+/* 页脚 */
+.site-footer{text-align:center;font-size:12px;color:var(--ink-2);padding:20px 16px 30px;border-top:1px solid var(--line);margin-top:10px}
+.site-footer b{color:var(--flag)}
+
+/* 语言模式：EN 界面下隐藏对照字幕类元素 */
+body.lang-en .en-sub,body.lang-en .prop-en,body.lang-en .en-answer{display:none}
+
+/* ============ API 配置弹窗（神经链路 Key 管理） ============ */
+.cfg-modal{position:fixed;inset:0;z-index:90;background:rgba(46,21,12,.5);
+  display:flex;align-items:center;justify-content:center;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.cfg-box{width:min(580px,calc(100vw - 32px));max-height:min(88vh,760px);overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:20px 22px;box-shadow:0 18px 50px rgba(46,21,12,.35)}
+.cfg-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.cfg-head h3{margin:0;font-size:15px}
+.cfg-x{border:0;background:transparent;font-size:15px;color:var(--ink-2)}
+.cfg-sub{font-size:12px;color:var(--ink-2);margin:0 0 6px;line-height:1.6}
+.cfg-sec{border-top:1px dashed var(--line);padding-top:12px;margin-top:12px}
+.cfg-sec h4{margin:0 0 8px;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cfg-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cfg-row>label{width:76px;flex:none;font-size:12px;color:var(--ink-2)}
+.cfg-row input[type=text],.cfg-row input[type=password]{flex:1;min-width:0;
+  border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;
+  background:var(--bg);color:var(--ink)}
+.cfg-hint{font-size:11.5px;color:var(--ink-2);margin:4px 0 0;line-height:1.55}
+.cfg-foot{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.cfg-btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;
+  padding:7px 14px;font-size:12.5px;color:var(--ink)}
+.cfg-btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.cfg-status{font-size:12px;margin-top:10px;min-height:16px;line-height:1.55;color:var(--ink)}
+.badge.mode{cursor:pointer}
+.badge.mode.on{background:var(--sup-bg);color:var(--sup);border-color:transparent}
+
+/* ============ 响应式 ============ */
+@media (max-width:1140px){
+  .layout{grid-template-columns:1fr;padding:14px}
+  .col-left > .card:first-child,
+  .col-right > .card:last-child{flex:none}
+  .col-left > .card:first-child .chat{flex:none;max-height:380px}
+  .col-right > .card:last-child .tabbody{flex:none;max-height:520px}
+}
+@media (max-width:820px){
+  .chat{max-height:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body class="lang-zh">
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg width="30" height="30" viewBox="0 0 30 30" role="img" aria-label="FirstCare logo: emergency cross with glowing ECG pulse">
+        <defs>
+          <linearGradient id="lgTile" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#E8452F"/>
+            <stop offset=".55" stop-color="#C22A19"/>
+            <stop offset="1" stop-color="#8E150A"/>
+          </linearGradient>
+          <linearGradient id="lgCross" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#FFFFFF"/>
+            <stop offset="1" stop-color="#FFDCCE"/>
+          </linearGradient>
+          <linearGradient id="lgPulse" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#FFD34D"/>
+            <stop offset="1" stop-color="#FF7A3D"/>
+          </linearGradient>
+          <filter id="lgGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="1.05" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <rect width="30" height="30" rx="7.5" fill="url(#lgTile)"/>
+        <rect x=".6" y=".6" width="28.8" height="28.8" rx="6.9" fill="none"
+              stroke="#FFFFFF" stroke-opacity=".22" stroke-width="1.2"/>
+        <rect x="11.4" y="4.5" width="7.2" height="21" rx="3" fill="url(#lgCross)"/>
+        <rect x="4.5" y="11.4" width="21" height="7.2" rx="3" fill="url(#lgCross)"/>
+        <path d="M7 15 H10.6 L12.4 12.2 L14.5 17.9 L16.1 15 H23"
+              fill="none" stroke="url(#lgPulse)" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" filter="url(#lgGlow)"/>
+      </svg>
+    </span>
+    FirstCare <small data-i18n="sub"></small>
+  </div>
+  <div class="sys-badges" id="sysBadges">
+    <span class="lg-item"><i class="lg-dot" style="background:var(--sup)"></i>supported</span>
+    <span class="lg-item"><i class="lg-dot" style="background:var(--gap)"></i>gap</span>
+    <span class="lg-item"><i class="lg-dot" style="background:var(--abs)"></i>absent</span>
+    <span class="badge warn" id="badgeEngine" data-i18n="engBuilding"></span>
+    <span class="badge mode" id="badgeMode"></span>
+    <div class="lang-switch" role="group" aria-label="Language / 语言">
+      <button type="button" id="langZh" class="on">中</button><button type="button" id="langEn">EN</button>
+    </div>
+    <button class="btn-mini" id="btnCfg" type="button" title="神经链路 API Key 配置">⚙ API</button>
+    <button class="btn-mini" id="btnReset" type="button" data-i18n="reset"></button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ============ 左栏：患者交互区 ============ -->
+  <section class="col col-left" aria-label="Patient interaction">
+    <div class="card card-preset">
+      <div class="card-head"><h2 data-i18n="presetHead"></h2><span class="meta-tag" data-i18n="presetMeta"></span></div>
+      <div class="preset-group">
+        <div class="preset-label"><span class="lg" style="background:var(--brand)"></span><span data-i18n="gFever"></span></div>
+        <div class="preset-row">
+          <button class="chip-btn" data-scenario="fever" data-i18n="scFever"></button>
+          <button class="chip-btn" data-scenario="flu" data-i18n="scFlu"></button>
+          <button class="chip-btn" data-scenario="gastro" data-i18n="scGastro"></button>
+        </div>
+      </div>
+      <div class="preset-group">
+        <div class="preset-label"><span class="lg" style="background:var(--gap)"></span><span data-i18n="gAbd"></span></div>
+        <div class="preset-row">
+          <button class="chip-btn" data-scenario="abdomen" data-i18n="scAbd"></button>
+        </div>
+      </div>
+      <div class="preset-group">
+        <div class="preset-label"><span class="lg" style="background:var(--flag)"></span><span data-i18n="gFlag"></span></div>
+        <div class="preset-row">
+          <button class="chip-btn fill" data-fillkey="f1"></button>
+          <button class="chip-btn fill" data-fillkey="f2"></button>
+          <button class="chip-btn fill" data-fillkey="f3"></button>
+          <button class="chip-btn fill" data-fillkey="f4"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2 data-i18n="chatHead"></h2></div>
+      <div class="chat scrollbar" id="chatBox" aria-live="polite">
+        <div class="empty-state" data-i18n-html="chatEmpty"></div>
+      </div>
+      <div class="chips-zone" id="chipsZone" hidden>
+        <div class="zt" data-i18n-html="chipsZt"></div>
+        <div class="preset-row" id="chipsRow"></div>
+      </div>
+      <form class="input-bar" id="inputForm">
+        <input type="text" id="queryInput" data-i18n-ph="inputPh" aria-label="Patient chief complaint">
+        <button class="btn-send" type="submit" data-i18n="send"></button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ 右栏：算法透明面板（单卡标签导航） ============ -->
+  <section class="col col-right" aria-label="Algorithm transparency panel">
+
+    <div class="card">
+      <div class="card-head"><h2 data-i18n="tlHead"></h2><span class="meta-tag" data-i18n="tlMeta"></span></div>
+      <div class="card-body">
+        <div id="panelTimeline" class="tl-wrap">
+          <div class="empty-state" style="padding:12px" data-i18n="tlEmpty"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-flat">
+      <div class="tabbar" role="tablist" aria-label="Pipeline navigation">
+        <button class="tab active" data-tab="panelRank" role="tab" aria-selected="true"><span class="step-no">01</span><span class="t-label" data-i18n="tab1"></span><i class="dot-new"></i></button>
+        <button class="tab" data-tab="panelProps" role="tab" aria-selected="false"><span class="step-no">02</span><span class="t-label" data-i18n="tab2"></span><i class="dot-new"></i></button>
+        <button class="tab" data-tab="panelVerify" role="tab" aria-selected="false"><span class="step-no">03</span><span class="t-label" data-i18n="tab3"></span><i class="dot-new"></i></button>
+        <button class="tab" data-tab="panelAnswer" role="tab" aria-selected="false"><span class="step-no">04</span><span class="t-label" data-i18n="tab4"></span><i class="dot-new"></i></button>
+      </div>
+
+      <div class="tabbody scrollbar">
+        <div class="tabpane card-body active" id="panelRank" role="tabpanel">
+          <div class="empty-state" data-i18n="pe1"></div>
+        </div>
+        <div class="tabpane card-body" id="panelProps" role="tabpanel">
+          <div class="empty-state" data-i18n="pe2"></div>
+        </div>
+        <div class="tabpane card-body" id="panelVerify" role="tabpanel">
+          <div class="empty-state" data-i18n="pe3"></div>
+        </div>
+        <div class="tabpane card-body" id="panelAnswer" role="tabpanel">
+          <div class="empty-state" data-i18n="pe4"></div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<footer class="site-footer">
+  <span data-i18n-html="footer"></span>
+</footer>
+
+<!-- 红旗报警弹窗 -->
+<div class="rf-modal" id="rfModal" hidden role="alertdialog" aria-modal="true" aria-labelledby="rfmTitle" aria-describedby="rfmSub">
+  <div class="rf-modal-box">
+    <div class="rfm-head"><span class="ic">🚨</span><span id="rfmTitle"></span></div>
+    <p class="rfm-sub" id="rfmSub"></p>
+    <div id="rfmList"></div>
+    <p class="rfm-advice" id="rfmAdvice"></p>
+    <button class="rfm-btn" id="rfmClose" type="button"></button>
+  </div>
+</div>
+
+<!-- 神经链路 API 配置弹窗 -->
+<div class="cfg-modal" id="cfgModal" hidden role="dialog" aria-modal="true" aria-labelledby="cfgTitle">
+  <div class="cfg-box">
+    <div class="cfg-head">
+      <h3 id="cfgTitle">⚙️ 神经链路 API 配置</h3>
+      <button class="cfg-x" id="cfgClose" type="button" aria-label="关闭">✕</button>
+    </div>
+    <p class="cfg-sub">Key 仅保存在本机浏览器（localStorage），不做任何上传。未配置时全部环节使用与后端一致的离线确定性档位；配置后 Stage-2 精排 / Task-5 核验自动切换真实模型调用（失败逐级回落），Task-6 生成按下方开关启用。</p>
+
+    <div class="cfg-sec">
+      <h4>🔑 Jev · TypeSafe System One <span class="meta-tag">Stage-2 精排 + Task-5 核验</span></h4>
+      <div class="cfg-row"><label>API Key</label><input type="password" id="cfg_jevKey" placeholder="sk-...（console.typesafe.ai/keys 或 DMXAPI）" autocomplete="off"></div>
+      <div class="cfg-row"><label>Base URL</label><input type="text" id="cfg_jevUrl" placeholder="https://api.typesafe.ai/v1/systemone"></div>
+      <div class="cfg-row"><label>模型</label><input type="text" id="cfg_jevModel" placeholder="jev-latest"></div>
+      <p class="cfg-hint">国内直连可改用 DMXAPI 聚合通道：https://www.dmxapi.cn/typesafe/v1/systemone（Key 填 DMXAPI 的 sk-...），协议与官方逐字一致，模型 jev-latest 指向最新版本。</p>
+    </div>
+
+    <div class="cfg-sec">
+      <h4>☁️ 并行智算云（OpenAI 兼容）<span class="meta-tag">Stage-2 LLM 评分 + Task-6 生成</span></h4>
+      <div class="cfg-row"><label>API Key</label><input type="password" id="cfg_ptKey" placeholder="PARATERA_API_KEY" autocomplete="off"></div>
+      <div class="cfg-row"><label>Base URL</label><input type="text" id="cfg_ptUrl" placeholder="https://llmapi.paratera.com/v1"></div>
+      <div class="cfg-row"><label>模型</label><input type="text" id="cfg_ptModel" placeholder="DeepSeek-V4.1-Flash-1017"></div>
+      <label class="cfg-row" style="cursor:pointer"><input type="checkbox" id="cfg_useLLMGen" style="width:auto">
+        <span style="font-size:12.5px">启用 Task-6 LLM 生成（对应后端 --llm；关闭则用五步受控演绎模板）</span></label>
+    </div>
+
+    <div class="cfg-foot">
+      <button class="cfg-btn primary" id="cfgSave" type="button">保存并关闭</button>
+      <button class="cfg-btn" id="cfgTestJev" type="button">测试 Jev 连通</button>
+      <button class="cfg-btn" id="cfgTestPt" type="button">测试智算云连通</button>
+      <button class="cfg-btn" id="cfgClear" type="button">清除全部</button>
+    </div>
+    <div class="cfg-status" id="cfgStatus"></div>
+    <p class="cfg-hint">注意：浏览器直连第三方 API 可能受 CORS 限制；若连通测试持续失败且控制台出现跨域报错，请将 Base URL 改指本地转发代理（如 Nginx / app.py 反代的同协议端点），调用协议不变。</p>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   真实管线 · 浏览器端完整移植版
+   —— 以下四个模块逐行对齐后端 Python 实现，不做演示脚本化：
+   Stage 1  src/retrieval/stage1_retriever.py   BM25+TF-IDF 混合召回
+   Stage 2  src/retrieval/stage2_jev_reranker.py Pointwise 精排
+            （离线词面覆盖率兜底模式 _score_lexical_fallback）
+   Task 5   src/verification/jev_fact_verifier.py 双问题 Jev 核验
+            （确定性规则模式 + 口语归一化 + 否定前缀窗口 + 硬闸门）
+   Task 6   src/generation/deductive_generator.py 五步受控演绎模板
+            生成 + 红旗急危升级硬规则
+   语料：data/structured_cases/ 全量结构化病例（由 build_frontend_real.py 注入）
+================================================================ */
+const CORPUS = /*__CORPUS__*/null;
+
+/* ============ i18n 字典（静态 UI） ============ */
+const UI = {
+  sub:{zh:"低幻觉导诊核验台 · 真实管线", en:"Low-Hallucination Triage Bench · Real Pipeline"},
+  engBuilding:{zh:"离线确定性模式 · 索引构建中…", en:"Offline deterministic mode · building index…"},
+  engReady:{zh:"真实管线就绪 · 离线确定性模式", en:"Real pipeline ready · offline deterministic mode"},
+  reset:{zh:"重置会话", en:"Reset session"},
+  presetHead:{zh:"主诉卡", en:"Chief-Complaint Card"},
+  presetMeta:{zh:"红旗组胶囊仅填入输入框", en:"Red-flag chips only fill the input box"},
+  gFever:{zh:"发热组", en:"Fever cases"},
+  gAbd:{zh:"腹痛组", en:"Abdominal pain"},
+  gFlag:{zh:"红旗组", en:"Red-flag quick fill"},
+  scFever:{zh:"发热两天+糖尿病史13年", en:"Fever x2 days + 13-yr diabetes"},
+  scFlu:{zh:"高烧39℃+浑身酸痛", en:"39°C fever + body aches"},
+  scGastro:{zh:"发烧呕吐拉肚子", en:"Fever, vomiting & diarrhea"},
+  scAbd:{zh:"转移性右下腹痛 + 低烧", en:"Migratory RLQ pain + low-grade fever"},
+  chatHead:{zh:"对话流", en:"Dialogue"},
+  chatEmpty:{zh:"请点击<b>主诉卡</b>中的预设场景，或在下方输入患者口语化主诉。<br>右侧透明面板由<b>真实管线</b>实时计算：①检索精排 → ②命题拆解 → ③双问题核验 → ④演绎导诊。",
+             en:"Pick a preset scenario from the <b>Chief-Complaint Card</b>, or type a patient's complaint below.<br>The transparency panel is computed live by the <b>real pipeline</b>: 1 Retrieval & Rerank -> 2 Propositions -> 3 Two-Question Verification -> 4 Deductive Triage."},
+  chipsZt:{zh:"🔍 未提及的关键鉴别要素 → 点击补充（触发全管线重算）：",
+           en:"🔍 Key discriminators not mentioned -> click to supply (full pipeline re-run):"},
+  inputPh:{zh:"输入患者口语化主诉或补充体征，如：我腋下摸到肿块，测血氧只有92%",
+           en:"Type the patient's complaint in plain words, e.g. 'I feel a lump in my armpit and my SpO2 reads 92%'"},
+  send:{zh:"提交", en:"Send"},
+  tlHead:{zh:"演化时间线", en:"Evolution Timeline"},
+  tlMeta:{zh:"确 / 疑 / 断 随轮次演化", en:"Confirmed / Gap / Absent across rounds"},
+  tlEmpty:{zh:"提交陈述后，展示多轮陈述下三态计数与紧急度的真实演化轨迹。",
+           en:"Submit a statement to see the real evolution of three-state counts and urgency."},
+  tab1:{zh:"检索精排", en:"Retrieval"},
+  tab2:{zh:"命题拆解", en:"Propositions"},
+  tab3:{zh:"双问题核验", en:"Verification"},
+  tab4:{zh:"演绎导诊", en:"Triage"},
+  pe1:{zh:"等待查询后展示 Stage-1 混合召回 + Stage-2 Pointwise 精排的真实 Top 候选病例",
+       en:"Top candidates from Stage-1 hybrid recall + Stage-2 pointwise rerank will appear here."},
+  pe2:{zh:"展示 Top-1 病例的原子临床命题（查询无关，离线预计算）", en:"Atomic clinical propositions of the Top-1 case (query-independent, precomputed offline)."},
+  pe3:{zh:"逐命题展示双问题 Jev 三态判定（确定性规则模式）", en:"Per-proposition two-question Jev verdicts (deterministic rule mode)."},
+  pe4:{zh:"基于已核验事实生成的受控演绎导诊结论", en:"Controlled deductive triage conclusion generated from verified facts only."},
+  footer:{zh:"<b>AI 导诊参考，不构成诊断。</b>　数据来源：中国临床案例成果数据库（CMCR）· 事实核验：Jev 双问题判断（Mention &amp; Support）· 引用病例链接至 rs.yiigle.com",
+          en:"<b>AI triage guidance - not a medical diagnosis.</b> Data source: Chinese Medical Case Repository (CMCR) · Fact verification: Jev two-question protocol (Mention &amp; Support) · Cited cases link to rs.yiigle.com"}
+};
+const FILLS = {
+  f1:{txt:{zh:"胸口压榨样疼痛伴冷汗",en:"Crushing chest pain with cold sweat"},
+      val:{zh:"胸口像被大石头压着，喘不上气，出了很多冷汗",en:"My chest feels like a huge stone pressing on it. I can't catch my breath and I'm breaking out in cold sweat."}},
+  f2:{txt:{zh:"气短，血氧92%",en:"Dyspnea, SpO2 92%"},
+      val:{zh:"我觉得明显气短，测血氧只有92%",en:"I feel markedly short of breath, and my SpO2 reads only 92%."}},
+  f3:{txt:{zh:"剧烈头痛+脖子僵硬",en:"Severe headache + stiff neck"},
+      val:{zh:"突然剧烈头痛，低头时脖子僵硬得厉害",en:"Sudden severe headache, and my neck feels very stiff when I lower my head."}},
+  f4:{txt:{zh:"抗感染无效+流鼻血",en:"Antibiotics fail + nosebleed"},
+      val:{zh:"发烧5天了，打了抗生素也一直不退烧，还流鼻血",en:"I've had a fever for 5 days. Antibiotics haven't brought it down, and now I have nosebleeds."}}
+};
+const SCENARIO_QUERIES = {
+  fever:{zh:"我发烧两天了，我有糖尿病13年，自己吃了退烧止痛药也没退烧",
+         en:"I've had a fever for two days. I've had diabetes for 13 years, and fever reducers and painkillers haven't brought it down."},
+  flu:{zh:"我昨天开始发烧到39.2度，浑身肌肉酸痛、头疼嗓子疼，还有点干咳；家里孩子前两天先感冒的，我吃了布洛芬烧退了又升回来",
+       en:"Since yesterday I've had a 39.2°C fever with body aches, headache and sore throat, plus a dry cough. My kid had a cold days ago; ibuprofen brings the fever down but it comes right back."},
+  gastro:{zh:"我昨天在外面吃了烧烤后开始发烧38.3度、恶心呕吐拉肚子，但我既往体健，无气短、血氧正常98%、无淋巴结肿大、无皮疹",
+          en:"Yesterday after eating barbecue from a street stall I had a 38.3°C fever with nausea, vomiting and diarrhea. Otherwise healthy - no shortness of breath, SpO2 normal at 98%, no swollen lymph nodes, no rash."},
+  abdomen:{zh:"我肚脐周围疼了一天多，现在疼到右下腹了，还有点低烧，碰到肚子会更疼",
+           en:"Pain around my belly button for over a day, now it has moved to the lower right abdomen. Slight fever, and pressing on my belly makes it hurt more."}
+};
+
+/* ============ 通用工具 ============ */
+const $ = s => document.querySelector(s);
+const chatBox = $("#chatBox");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let lang = "zh";
+const roleLabel = {supported:"SUPPORTED", gap:"GAP", absent:"ABSENT"};
+const truncLbl = s => { s = String(s).trim(); return s.length > 14 ? s.slice(0,14) + "…" : s; };
+
+/* ================================================================
+   模块 1 —— Stage 1：字符 n-gram BM25 + TF-IDF 余弦混合召回
+   逐行对齐 src/retrieval/stage1_retriever.py（HybridRetriever）
+================================================================ */
+const PUNCT_RE = /[\s，。、；：？！（）《》“”‘’\-—·…,.:;?!\(\)\[\]\/\\"'`~@#$%^&*+=<>|]/g;
+const NGRAM_SIZES = [1,2,3], K1 = 1.5, B = 0.75, W_BM25 = 0.5, W_TFIDF = 0.5;
+
+function charNgrams(text){
+  text = text.replace(PUNCT_RE, "");
+  const grams = [];
+  for (const n of NGRAM_SIZES)
+    for (let i = 0; i + n <= text.length; i++) grams.push(text.substr(i, n));
+  return grams;
+}
+
+/* 检索文档视图：标题 + 主诉现病史[:800] + 鉴别诊断[:800]（与后端 _DOC_KEYS 一致） */
+const docTextOf = c => [c.t, c.gi, c.dd].join(" ");
+
+const IDX = {built:false, building:false, N:0, post:new Map(), idf:new Map(),
+             dl:[], avgdl:0, norm:[], byCmaid:new Map()};
+
+function buildIndex(){
+  if (IDX.built || IDX.building) return;
+  IDX.building = true;
+  const docs = CORPUS.cases;
+  IDX.N = docs.length;
+  docs.forEach((c,i) => IDX.byCmaid.set(c.c, i));
+  /* pass 1：逐文档 n-gram 词频 → 全局倒排 post: gram -> [docIdx, tf, ...] */
+  const post = IDX.post;
+  for (let i = 0; i < docs.length; i++){
+    const tf = new Map();
+    let total = 0;                       /* doc_len 计 n-gram 总数（含重复），与后端一致 */
+    for (const g of charNgrams(docTextOf(docs[i]))){
+      tf.set(g, (tf.get(g)||0)+1);
+      total++;
+    }
+    IDX.dl.push(total);
+    IDX.norm.push(0);                    /* 范数累加器必须初始化为 0（否则 undefined+数=NaN→兜底成1，余弦失效） */
+    for (const [g, f] of tf){
+      let arr = post.get(g);
+      if (!arr){ arr = []; post.set(g, arr); }
+      arr.push(i, f);
+    }
+  }
+  IDX.avgdl = IDX.dl.reduce((a,b)=>a+b,0) / IDX.N;
+  /* pass 2：IDF（BM25 式）与文档向量 l2 范数（TF-IDF 余弦用） */
+  for (const [g, arr] of post){
+    const df = arr.length / 2;
+    const idf = Math.log(1 + (IDX.N - df + 0.5) / (df + 0.5));
+    IDX.idf.set(g, idf);
+    for (let p = 0; p < arr.length; p += 2){
+      const tf = arr[p+1];
+      IDX.norm[arr[p]] += Math.pow((1 + Math.log(tf)) * idf, 2);
+    }
+  }
+  for (let i = 0; i < IDX.N; i++) IDX.norm[i] = Math.sqrt(IDX.norm[i]) || 1;
+  IDX.built = true; IDX.building = false;
+}
+
+function stage1Query(text, topK = 50){
+  if (!IDX.built) buildIndex();
+  const qtf = new Map();
+  for (const g of charNgrams(text)){
+    if (!IDX.idf.has(g)) continue;
+    qtf.set(g, (qtf.get(g)||0)+1);
+  }
+  if (!qtf.size) return [];
+  /* 查询向量 l2 归一化（与后端 q_vec /= qn 一致，否则 BM25 与余弦权重失衡） */
+  let qn2 = 0;
+  const qwMap = new Map();
+  for (const [g, qf] of qtf){
+    const qw = (1 + Math.log(qf)) * IDX.idf.get(g);
+    qwMap.set(g, qw);
+    qn2 += qw * qw;
+  }
+  const qn = Math.sqrt(qn2) || 1;
+  const bm25 = new Float64Array(IDX.N), dot = new Float64Array(IDX.N);
+  const touched = new Set();
+  let bmmax = 0;
+  for (const [g, qf] of qtf){
+    const idf = IDX.idf.get(g), post = IDX.post.get(g);
+    const qw = qwMap.get(g) / qn;
+    for (let p = 0; p < post.length; p += 2){
+      const d = post[p], tf = post[p+1];
+      bm25[d] += idf * tf * (K1 + 1) /
+        (tf + K1 * (1 - B + B * IDX.dl[d] / IDX.avgdl));
+      dot[d] += qw * (1 + Math.log(tf)) * idf / IDX.norm[d];
+      touched.add(d);
+      if (bm25[d] > bmmax) bmmax = bm25[d];
+    }
+  }
+  if (bmmax > 0) for (const d of touched) bm25[d] /= bmmax;
+  const scored = [];
+  for (const d of touched){
+    const s = W_BM25 * bm25[d] + W_TFIDF * dot[d];
+    if (s > 0) scored.push([d, s]);
+  }
+  scored.sort((a,b) => b[1] - a[1]);
+  return scored.slice(0, topK).map(([d, s]) => ({cmaid: CORPUS.cases[d].c, stage1: s}));
+}
+
+/* ================================================================
+   模块 2 —— Stage 2：Pointwise Jev 精排（离线词面覆盖率兜底模式）
+   逐行对齐 src/retrieval/stage2_jev_reranker.py::_score_lexical_fallback
+   与 _load_doc_text（神经判别模式需外部 API Key，浏览器内运行离线兜底层）
+================================================================ */
+function stage2DocText(c){
+  return ("标题：" + c.t + "\n[主诉与现病史] " + c.gi.slice(0,600) +
+          "\n[鉴别诊断] " + c.dd.slice(0,600)).slice(0, 2400);
+}
+function bigrams(text){
+  /* 与后端 _score_lexical_fallback 一致：stop 集为单字符，对 2-gram 集合
+     的差集运算实际为空操作——为逐位一致此处同样不做过滤 */
+  const set = new Set();
+  for (let i = 0; i < text.length - 1; i++) set.add(text.substr(i, 2));
+  return set;
+}
+function stage2LexicalScore(q, docText){
+  const qg = bigrams(q);
+  if (!qg.size) return 0.0;
+  const dg = bigrams(docText);
+  let inter = 0;
+  for (const g of qg) if (dg.has(g)) inter++;
+  return Math.min(1, inter / qg.size);
+}
+function stage2Rerank(q, candidates){
+  const ranked = candidates.map(cand => {
+    const c = CORPUS.cases[IDX.byCmaid.get(cand.cmaid)];
+    const score = stage2LexicalScore(q, stage2DocText(c));
+    return {cmaid: cand.cmaid, score: Math.round(score*10000)/10000,
+            reason_zh: "词面覆盖率兜底打分",
+            title: c.t};
+  });
+  ranked.sort((a,b) => b.score - a.score);
+  return ranked;
+}
+
+/* ================================================================
+   模块 3 —— Task 5：双问题 Jev 事实核验（确定性规则模式）
+   逐行对齐 src/verification/jev_fact_verifier.py
+================================================================ */
+const TAU_F = 0.7;
+const P = {NEG:[0.87,0.32], AFFIRM:[0.90,0.85], MEN:[0.85,0.30], ABS:[0.15,0.03]};
+const NEGATION_PREFIXES = ["没有","没有过","无","未曾","从未","不曾","否认","未","不","沒有"];
+const NEG_WINDOW = 6;
+const COLLOQUIAL_NORMS = [
+  [/(胸口|心口|胸骨)[^，。；!？]{0,8}(压|石|挤|钳|绞|痛|疼|闷)/, "胸痛、压榨样胸痛、胸口疼痛"],
+  [/喘不上气|上气不接下气|气不够用|透不过气|憋得?慌|接不上气/, "气短、呼吸困难"],
+  [/冷汗|大汗淋漓|汗如雨下|汗珠直冒/, "大汗、出冷汗"],
+  /* 2026-10-31 评测补录：意识改变的口语变体（实测"叫半天都叫不应"未命中旧模式） */
+  [/叫不醒|叫不应|唤不醒|意识不清|说胡话|不省人事|意识模糊|迷糊|答非所问|昏昏沉沉/, "意识改变、意识障碍、呼之不应"],
+  [/头痛欲裂|要炸开|剧烈头痛|一生中最(剧烈|严重|痛)的?头(痛|疼)/, "剧烈头痛"],
+  /* 2026-10-31 评测补录："血色素"为血红蛋白的俗称（实测"血色素很低"未命中
+     affirm 关键词"血红蛋白很低"，红旗命题 p_sup=0.66 差 0.04 未升级） */
+  [/血色素(很低|太低|偏低|低)/, "血红蛋白很低、血红蛋白低、贫血严重"],
+  [/血色素/, "血红蛋白"],
+  [/退烧止痛药|退烧药|止痛药|退热药/, "退烧止痛药物"],
+  [/拉肚子|跑厕所|拉稀|水样便/, "腹泻"],
+  [/恶心想吐|吐个不停|吐了/, "恶心、呕吐"],
+  [/发烧|发烫|烧到/, "发热"]
+];
+function colloquialNormTerms(q){
+  const terms = [];
+  for (const [re, canon] of COLLOQUIAL_NORMS)
+    if (re.test(q) && !terms.includes(canon)) terms.push(canon);
+  return terms;
+}
+function expandColloquial(q){
+  const terms = colloquialNormTerms(q);
+  if (!terms.length) return q;
+  return q + "\n（口语表述对照：患者所述可能对应规范术语：" + terms.join("、") + "）";
+}
+function findSpans(q, keywords){
+  const hits = [];
+  for (const kw of keywords || [])
+    if (kw && q.includes(kw) && !hits.includes(kw)) hits.push(kw);
+  return hits;
+}
+function hasNegationPrefix(q, kw){
+  let start = 0;
+  while (true){
+    const i = q.indexOf(kw, start);
+    if (i < 0) return false;
+    const win = q.slice(Math.max(0, i - NEG_WINDOW), i);
+    if (NEGATION_PREFIXES.some(neg => win.includes(neg))) return true;
+    start = i + kw.length;
+  }
+}
+/* 对单条命题执行双问题核验（确定性规则档位与后端完全一致） */
+function verifyDeterministic(q, prop){
+  const negHits = findSpans(q, prop.nk);
+  const uncHits = findSpans(q, prop.uk);
+  const affAll = findSpans(q, prop.ak);
+  const affNeg = affAll.filter(kw => hasNegationPrefix(q, kw));
+  const affHits = affAll.filter(kw => !hasNegationPrefix(q, kw));
+  const menHits = findSpans(q, prop.mk);
+  let pm, ps, evidence;
+  if (negHits.length || uncHits.length || affNeg.length){
+    [pm, ps] = P.NEG;                       /* 明确否定 / 未检查 → 提及但未成立 */
+    evidence = (negHits.length ? negHits : (uncHits.length ? uncHits : affNeg)).slice(0,3);
+  } else if (affHits.length){
+    [pm, ps] = P.AFFIRM;                    /* 第一人称明确肯定 → 成立 */
+    evidence = affHits.slice(0,3);
+  } else if (menHits.length){
+    [pm, ps] = P.MEN;                       /* 仅提及（如转述检查项目名）→ 提及未成立 */
+    evidence = menHits.slice(0,3);
+  } else {
+    [pm, ps] = P.ABS; evidence = [];
+  }
+  const role = ps >= TAU_F ? "supported" : (pm >= TAU_F ? "gap" : "absent");
+  return {prop, p_men: pm, p_sup: ps, role, evidence,
+          src: (prop.id.split("_")[1] || "")};
+}
+/* 防幻觉硬闸门：absent 命题物理剔除，仅放行 supported/gap；导出追问 chips */
+const GATE_CHIP_TOP_CASES = 2, GATE_CHIP_MAX = 6;
+/* 鉴别重要度排序（对齐 CATEGORY_PRIORITY；后端 _cat_of 暂为固定中位类别桩） */
+const CATEGORY_PRIORITY = {"急危红旗征":0, "核心症状与诱因":1, "既往病史":2, "阳性查体":3, "治疗反应":4};
+const catOf = () => "核心症状与诱因";
+function filterFactsForGenerator(facts){
+  const supported = facts.filter(f => f.role === "supported");
+  const gap = facts.filter(f => f.role === "gap");
+  const absent = facts.filter(f => f.role === "absent");
+  const keep = new Set();
+  if (supported[0]) keep.add(supported[0].src);
+  if (gap[0]) keep.add(gap[0].src);
+  const srcOrder = [];
+  for (const f of facts){ if (!srcOrder.includes(f.src)) srcOrder.push(f.src); }
+  srcOrder.slice(0, GATE_CHIP_TOP_CASES).forEach(s => keep.add(s));
+  const candidates = absent.filter(f => keep.has(f.src));
+  /* 排序键对齐后端：(红旗优先, 类别优先级, -|p_men-τ| 离阈值最远者在前) */
+  candidates.sort((a,b) =>
+    ((a.prop.rf ? 0 : 1) - (b.prop.rf ? 0 : 1)) ||
+    ((CATEGORY_PRIORITY[catOf(a)] ?? 9) - (CATEGORY_PRIORITY[catOf(b)] ?? 9)) ||
+    (Math.abs(b.p_men - TAU_F) - Math.abs(a.p_men - TAU_F)));
+  const chips = candidates.slice(0, GATE_CHIP_MAX)
+    .map(f => f.prop.chip || f.prop.zh);
+  return {supported, gap, chips};
+}
+
+/* ================================================================
+   模块 4 —— Task 6：五步受控演绎模板生成 + 红旗急危升级硬规则
+   逐行对齐 src/generation/deductive_generator.py::build_template_answer
+================================================================ */
+const EMERGENCY_NOW = "立即急诊", OUTPATIENT = "门诊就诊";
+const FORBIDDEN_PHRASES_RED_FLAG = ["居家观察","在家观察","普通门诊随诊","无需就医","不必就医","无需急诊","自行缓解即可"];
+const shorten = (t, n=110) => { t = (t||"").trim().replace(/\n/g,""); return t.length > n ? t.slice(0,n) + "……" : t; };
+function specialtyRoute(c, topCases){
+  const candidates = [c].concat((topCases||[]).filter(x => x !== c));
+  for (const cc of candidates){
+    const specs = [...new Set(cc.sp || [])].slice(0,3);
+    if (specs.length === 1) return specs[0];
+    if (specs.length > 1) return specs.slice(0,-1).join("、") + "与" + specs[specs.length-1] + "协同";
+    const dept = (cc.dept || "").trim();
+    if (dept) return dept;
+  }
+  return "相应专科门诊";
+}
+
+/* ---- 事后事实校验层常量（对齐 deductive_generator POSTHOC_*） ---- */
+const POSTHOC_FACT_PHRASES = ["您具备","您患有","您已出现","您已确认","您存在"];
+const POSTHOC_REWRITE = "（病例提示待核对特征）";
+const POSTHOC_NEGATION_PREFIXES = ["非","不是","不等于","未","不","没"];
+const _DIG_CN = {"0":"零","1":"一","2":"二","3":"三","4":"四","5":"五","6":"六","7":"七","8":"八","9":"九"};
+const translateDigits = s => String(s).replace(/\d/g, d => _DIG_CN[d]);
+
+/* 数值/时间限定词守卫（对齐 _specificity_guard）：命题中的数字与中文时间
+   限定词逐一在患者陈述（口语归一化后，数字与汉字数字互认）中找锚点 */
+function specificityGuard(propText, queryText){
+  const toks = new Set();
+  for (const m of String(propText).matchAll(/\d+(?:\.\d+)?/g)) toks.add(m[0]);
+  for (const m of String(propText).matchAll(
+      /[零一二两三四五六七八九十百千\d]+(?:个多月|个月|年|天|日|周|星期|小时|分钟)(?:前|余)?/g)) toks.add(m[0]);
+  if (!toks.size) return true;
+  const qNorm = translateDigits(queryText);
+  for (const t of toks){
+    if (!queryText.includes(t) && !qNorm.includes(translateDigits(t))) return false;
+  }
+  return true;
+}
+
+/* supported 事实双栏拆分（Veto 4 防线第二层，对齐 split_supported_facts）：
+   Jev supported 且确定性词面锚点命中（含限定词守卫）→ 患者已确认；
+   否则降为"病例待核对特征"，生成器只能以"待核对"措辞提示 */
+function splitSupportedFacts(query, supportedFacts, topCases){
+  const propMap = {};
+  for (const c of topCases) for (const p of c.ps) propMap[p.id] = p;
+  const qExp = expandColloquial(query);
+  const affirmed = [], caseFeats = [];
+  for (const f of supportedFacts){
+    const raw = propMap[f.prop.id];
+    if (!raw){ caseFeats.push(f); continue; }   /* 找不到原命题 → 保守归入待核对 */
+    const det = verifyDeterministic(qExp, raw);
+    if (det.role === "supported" && specificityGuard(raw.zh, qExp)) affirmed.push(f);
+    else caseFeats.push(f);
+  }
+  return [affirmed, caseFeats];
+}
+
+/* 红旗召回确定性安全网（对齐 rescue_red_flags，宁升级勿漏）：
+   Jev 未判 supported 的红旗命题，若确定性锚点命中且守卫通过，
+   以"待核对红旗特征"身份参与红旗升级判定 */
+function rescueRedFlags(query, allFacts, topCases){
+  const propMap = {};
+  for (const c of topCases) for (const p of c.ps) propMap[p.id] = p;
+  const qExp = expandColloquial(query);
+  const rescued = [];
+  for (const f of (allFacts || [])){
+    if (f.role === "supported" || !f.prop.rf) continue;
+    const raw = propMap[f.prop.id];
+    if (!raw) continue;
+    const det = verifyDeterministic(qExp, raw);
+    if (det.role === "supported" && specificityGuard(raw.zh, qExp)) rescued.push(f);
+  }
+  return rescued;
+}
+
+function bigramOverlap(text, ref){
+  /* text 与 ref 是否存在字符二元组重叠（忽略空白与标点，对齐 _bigram_overlap） */
+  const clean = String(text).replace(/[\s，。、；：！？,.;:!?"'"'（）()\[\]【】…·\-—*]/g, "");
+  if (clean.length < 2) return true;
+  for (let i = 0; i < clean.length - 1; i++)
+    if (ref.includes(clean.substr(i, 2))) return true;
+  return false;
+}
+
+/* 事后事实校验层（对齐 posthoc_fact_guard）：对五段正文做两层确定性
+   校验并就地改写越界表述——层1 病例泄漏、层2 凭空捏造；否定语境不改写 */
+function posthocFactGuard(ans, affirmed, caseFeats, gapFacts, propMap, query){
+  const qRef = expandColloquial(query);
+  const affirmedRef = qRef + " " + affirmed.map(f => f.prop.zh).join(" ");
+  /* 泄漏词表只取病例待核对特征的特异关键词（gap 泛化词不纳入，防误改） */
+  const leakKws = [];
+  for (const f of caseFeats){
+    const raw = propMap[f.prop.id] || {};
+    let kws = ((raw.mk && raw.mk.length ? raw.mk : raw.ak) || [])
+      .filter(k => k && k.length >= 2);
+    if (!kws.length){
+      const t = f.prop.zh || "";
+      kws = [];
+      for (let i = 0; i < Math.min(t.length, 10); i += 2) kws.push(t.substr(i, 2));
+    }
+    leakKws.push(...kws);
+  }
+  for (const key of Object.keys(ans.sections)){
+    let out = ans.sections[key];
+    for (const ph of POSTHOC_FACT_PHRASES){
+      let start = 0;
+      while (true){
+        const i = out.indexOf(ph, start);
+        if (i < 0) break;
+        if (POSTHOC_NEGATION_PREFIXES.some(n =>
+            out.slice(Math.max(0, i - n.length), i).endsWith(n))){
+          start = i + ph.length; continue;
+        }
+        const window = out.substr(i + ph.length, 60);
+        let cut = window.length;
+        for (const stop of ["。", "；", "\n"]){
+          const j = window.indexOf(stop);
+          if (j > 0 && j < cut) cut = j;
+        }
+        const clause = window.slice(0, cut);
+        const hitLeak = leakKws.length > 0 && leakKws.some(kw => window.includes(kw));
+        const fabricated = clause.trim().length >= 4 && !bigramOverlap(clause, affirmedRef);
+        if (hitLeak || fabricated){
+          out = out.slice(0, i) + POSTHOC_REWRITE + out.slice(i + ph.length);
+          ans.posthoc = true;
+          start = i + POSTHOC_REWRITE.length;
+        } else {
+          start = i + ph.length;
+        }
+      }
+    }
+    ans.sections[key] = out;
+  }
+}
+
+function buildTemplateAnswer(query, topCases, supportedFacts, gapFacts, chips, caseFeats){
+  const ans = {mode:"template", urgency:OUTPATIENT, route:"", red_flag:false,
+               cited:[], sections:{}, en_summary:"", veto2:false,
+               posthoc:false, rescued_n:0};
+  if (!topCases.length){
+    for (const k of ["i","ii","iii","iv","v"]) ans.sections[k] = "未能检索到匹配病例，请补充症状描述后重试。";
+    ans.route = "无法确定";
+    return ans;
+  }
+  const top1 = topCases[0];
+  ans.cited = topCases.map(c => c.c);
+  caseFeats = caseFeats || [];
+  /* 红旗升级判定范围 = 全部 Jev supported 事实（含待核对栏）——宁升级勿漏 */
+  const redFlags = supportedFacts.concat(caseFeats).filter(f => f.prop.rf);
+  ans.red_flag = redFlags.length > 0;
+  if (ans.red_flag) ans.urgency = EMERGENCY_NOW;      /* 红旗急危升级硬规则 */
+  ans.route = ans.red_flag
+    ? "急诊科首诊排查 → " + specialtyRoute(top1, topCases)
+    : specialtyRoute(top1, topCases) + "首诊";
+
+  /* (i) 方向性分诊结论（模板模式原样输出；禁语清洗仅发生在 LLM 模式，与后端一致） */
+  let s1 = "建议就诊路径：" + ans.route + "；就医紧急度：**" + ans.urgency + "**。";
+  if (ans.red_flag)
+    s1 += "您陈述中已出现需紧急处置的危险信号，请立即前往急诊科，切勿居家观察或仅预约普通门诊。";
+  ans.sections.i = s1;
+
+  /* (ii) 破除表面诱因认知误区 */
+  ans.sections.ii =
+    "需要提醒：表面诱因不等于病因。您描述的情况看似可由近期诱因解释，" +
+    "但 CMCR 病例 `cmaid/" + top1.c + "`《" + top1.t + "》显示，" +
+    "类似起始表现（" + shorten(top1.h, 80) + "）最终确诊为需要专门处置的疾病。" +
+    "请不要把症状简单归结为\"吃坏了/累着了/着凉了\"等日常原因而延误评估。";
+
+  /* (iii) 演绎事实映射分析（双栏：患者已确认 vs 病例待核对特征） */
+  const order = supportedFacts.slice().sort((a,b) =>
+    ((a.prop.rf ? 0 : 1) - (b.prop.rf ? 0 : 1)) || (b.p_sup - a.p_sup));
+  const lines = [];
+  for (const f of order.slice(0,6)){
+    const src = topCases.find(c => c.c === f.src) || top1;
+    const rf = f.prop.rf ? "**（急危红旗征）**" : "";
+    lines.push("- " + rf + "您已确认的事实\"" + f.prop.zh + "\"与 CMCR 病例 " +
+      "`cmaid/" + src.c + "`《" + src.t + "》的鉴别特征相符" +
+      "（核验概率 p_sup=" + f.p_sup.toFixed(2) + "），支持将该病例所涉疾病纳入重点排查。");
+  }
+  const corder = caseFeats.slice().sort((a,b) =>
+    ((a.prop.rf ? 0 : 1) - (b.prop.rf ? 0 : 1)) || (b.p_sup - a.p_sup));
+  for (const f of corder.slice(0,4)){
+    const src = topCases.find(c => c.c === f.src) || top1;
+    const rf = f.prop.rf ? "**（急危红旗征）**" : "";
+    lines.push("- " + rf + "检索到的病例还提示一个**待核对特征**：\"" + f.prop.zh +
+      "\"（来自 CMCR 病例 `cmaid/" + src.c + "`）——请注意这不是您已确认的事实，" +
+      "需由医生当面问诊/检查核实，仅用于提示排查方向。");
+  }
+  ans.sections.iii = lines.length ? lines.join("\n")
+    : "暂无被完全确认的阳性事实；以下按已提及要素分析。";
+
+  /* (iv) 结论翻转边界与红旗征警示 */
+  const gorder = gapFacts.slice().sort((a,b) =>
+    ((a.prop.rf ? 0 : 1) - (b.prop.rf ? 0 : 1)) || (b.p_men - a.p_men));
+  const glines = [];
+  for (const f of gorder.slice(0,6)){
+    glines.push(f.prop.rf
+      ? "- **危险信号（尚未确认）**：\"" + f.prop.zh + "\"——一旦出现或证实，病情风险将立即升级为急诊级别。"
+      : "- 您尚未确认或暂未出现：\"" + f.prop.zh + "\"——若后续出现，请按上述路径尽快复诊。");
+  }
+  ans.sections.iv = glines.length ? glines.join("\n") : "当前无关键待确认要素。";
+
+  /* (v) 可执行的下一步建议 */
+  const vlines = ["到院后建议优先完善：" + shorten(top1.dg, 100)];
+  if (chips.length)
+    vlines.push("就诊前请留意并如实告知医生：" + chips.slice(0,4).join("；") + "。");
+  vlines.push("本建议为AI导诊参考，不构成诊断；症状加重时请立即拨打120。");
+  ans.sections.v = vlines.join("\n");
+
+  const supEn = order.slice(0,3).map(f => f.prop.en || f.prop.zh).join("; ");
+  const caseEn = corder.slice(0,3).map(f => f.prop.en || f.prop.zh).join("; ");
+  const gapEn = gorder.slice(0,3).map(f => f.prop.en || f.prop.zh).join("; ");
+  ans.en_summary =
+    "[EN] Triage: " + (ans.red_flag ? "Emergency department NOW" : "Outpatient visit") +
+    " -> " + specialtyRoute(top1, topCases) +
+    ". Patient-confirmed findings: " + (supEn || "none confirmed") +
+    ". Case-derived features to verify on-site: " + (caseEn || "none") +
+    ". Unconfirmed/gap items to monitor: " + (gapEn || "none") +
+    ". Grounded on CMCR case cmaid/" + top1.c + ".";
+  return ans;
+}
+
+/* ================================================================
+   模块 5 —— 神经模式：API Key 配置与真实模型调用
+   对齐 src/config.py、src/verification/jev_client.py（/v1/systemone
+   HTTP 直连）、src/retrieval/stage2_jev_reranker.py（Jev Noul 优先 /
+   智算云 LLM 评分）、src/generation/deductive_generator.py（Task 6
+   LLM 五步生成）。未配置 Key 时全部回落离线确定性档位。
+================================================================ */
+const LS = (typeof localStorage !== "undefined") ? localStorage
+  : {getItem: () => null, setItem: () => {}, removeItem: () => {}};
+const CFG_DEFAULT = {
+  jevKey: "", jevUrl: "https://api.typesafe.ai/v1/systemone", jevModel: "jev-latest",
+  ptKey: "", ptUrl: "https://llmapi.paratera.com/v1", ptModel: "DeepSeek-V4.1-Flash-1017",
+  useLLMGen: false
+};
+let CFG = Object.assign({}, CFG_DEFAULT);
+try { Object.assign(CFG, JSON.parse(LS.getItem("medir_cfg_v1") || "{}")); } catch (e) {}
+function saveCfg(){
+  LS.setItem("medir_cfg_v1", JSON.stringify(CFG));
+  pipeCache.clear();            /* 配置变更后历史轮次缓存失效，须重算 */
+  updateModeBadge();
+}
+const jevAvailable = () => !!CFG.jevKey;
+const ptAvailable = () => !!CFG.ptKey;
+
+async function httpPostJSON(url, headers, payload, timeoutMs){
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), timeoutMs || 30000);
+  try {
+    const resp = await fetch(url, {method: "POST", headers,
+                                   body: JSON.stringify(payload), signal: ctl.signal});
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    return await resp.json();
+  } finally { clearTimeout(timer); }
+}
+
+/* —— Jev（TypeSafe System One）直连客户端：协议与 jev_client._post_direct 逐字一致 —— */
+async function jevQuery(state, questions){
+  if (!jevAvailable()) return null;
+  try {
+    const data = await httpPostJSON(CFG.jevUrl,
+      {Authorization: "Bearer " + CFG.jevKey, "Content-Type": "application/json"},
+      {state, model: CFG.jevModel, questions});
+    const answers = data && data.answers;
+    return (answers && Object.keys(answers).length) ? answers : null;
+  } catch (e) { return null; }
+}
+async function jevNoulBatch(state, noulQuestions){
+  const questions = {};
+  for (const qid in noulQuestions)
+    questions[qid] = {type: "noul", instructions: noulQuestions[qid]};
+  const answers = await jevQuery(state, questions);
+  if (!answers) return null;
+  const out = {};
+  for (const qid in answers){
+    const v = parseFloat(answers[qid] && answers[qid].noul);
+    if (!isFinite(v)) return null;
+    out[qid] = v;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+/* —— 并行智算云（OpenAI 兼容 /chat/completions） —— */
+async function ptChat(messages, temperature, model, timeoutMs){
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), timeoutMs || 180000);
+  try {
+    const url = CFG.ptUrl.replace(/\/+$/, "") + "/chat/completions";
+    const resp = await fetch(url, {method: "POST",
+      headers: {Authorization: "Bearer " + CFG.ptKey, "Content-Type": "application/json"},
+      body: JSON.stringify({model: model || CFG.ptModel, messages, temperature}),
+      signal: ctl.signal});
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    const data = await resp.json();
+    return (data.choices && data.choices[0] && data.choices[0].message &&
+            data.choices[0].message.content) || "";
+  } finally { clearTimeout(timer); }
+}
+
+/* —— 有限并发映射（对齐后端 ThreadPoolExecutor(max_workers=8)） —— */
+async function pooledMap(items, worker, n){
+  const out = new Array(items.length);
+  let next = 0;
+  const runners = Array.from({length: Math.min(n, items.length) || 1}, async () => {
+    while (next < items.length){ const i = next++; out[i] = await worker(items[i], i); }
+  });
+  await Promise.all(runners);
+  return out;
+}
+
+/* —— Stage-2 神经精排：Jev Noul 优先（对齐 _score_via_jev）；
+      未配置 Jev Key 时走智算云 LLM 评分（对齐 _score_via_api） —— */
+const JEV_SYSTEM_PROMPT = `你是医疗导诊检索的相关性判别专家。给定一位患者向 AI 健康助手发出的口语化咨询，以及一份候选临床病例的摘要，请判断：该病例的临床鉴别要件（症状组合、关键体征、病程特点、既往史、鉴别诊断逻辑）是否直接且特异地支撑患者的核心症候群与风险特征——而不仅仅是表面症状相似。
+评分标准（输出 0-1 连续分数，保留两位小数）：
+- 0.90-1.00：鉴别要件几乎完全吻合，该病例就是患者情形的强对应（如同一疾病方向且关键特征一致）；
+- 0.70-0.89：多数鉴别要件直接支撑，个别要素不符；
+- 0.40-0.69：部分表面症状相似，但深层鉴别要件支撑不足（近似干扰项）；
+- 0.10-0.39：仅有零星弱关联；
+- 0.00-0.09：症候群方向完全不符。
+只依据给定材料判断，不要编造。全部使用简体中文。`;
+const JEV_SPEC = '{"score": 0到1的连续分数, "reason_zh": "30字以内的判分理由"}';
+
+async function stage2ScorePoint(q, docText){
+  if (jevAvailable()){
+    const state = "【患者咨询（口语）】\n" + q + "\n\n【候选病例】\n" + docText;
+    const probs = await jevNoulBatch(state, {q:
+      "该候选病例的临床鉴别要件（症状组合、关键体征、病程特点、既往史、鉴别诊断逻辑）" +
+      "是否直接且特异地支撑患者的核心症候群与风险特征——而不仅仅是表面症状相似。" +
+      "完全不符为假，强对应为真。"});
+    if (probs) return [Math.round(probs.q * 10000) / 10000, "Jev Noul 校准概率"];
+    return null;
+  }
+  try {
+    const userMsg = ("【患者咨询】\n" + q + "\n\n【候选病例】\n" + docText +
+      "\n\n请输出符合以下 JSON 结构的对象（不要输出其他内容）：\n" + JEV_SPEC);
+    let raw = await ptChat([{role: "system", content: JEV_SYSTEM_PROMPT},
+                            {role: "user", content: userMsg}], 0.1);
+    raw = String(raw).replace(/<think>[\s\S]*?<\/think>/g, "");
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    const data = JSON.parse(m[0]);
+    const score = Math.max(0, Math.min(1, parseFloat(data.score)));
+    if (!isFinite(score)) return null;
+    return [score, String(data.reason_zh || "")];
+  } catch (e) { return null; }
+}
+
+async function stage2RerankNeural(q, candidates){
+  const docs = candidates.map(cand => ({
+    cmaid: cand.cmaid, s1: cand.stage1,
+    doc: stage2DocText(CORPUS.cases[IDX.byCmaid.get(cand.cmaid)])}));
+  /* 探针：首例失败即整级回落词面兜底（避免无效 50 连击） */
+  const probe = await stage2ScorePoint(q, docs[0].doc);
+  if (!probe){
+    return {list: stage2Rerank(q, candidates), mode: "lexical",
+            note: (jevAvailable() ? "Jev" : "智算云 LLM") + " 调用失败，已回落词面覆盖率兜底"};
+  }
+  const results = await pooledMap(docs, async (d, i) => {
+    if (i === 0) return [d, probe];
+    const r = await stage2ScorePoint(q, d.doc);
+    return [d, r || [stage2LexicalScore(q, d.doc), "词面覆盖率兜底打分"]];
+  }, 8);
+  const list = results.map(([d, r]) => ({cmaid: d.cmaid, stage1: d.s1,
+    score: r[0], reason_zh: r[1],
+    title: CORPUS.cases[IDX.byCmaid.get(d.cmaid)].t}));
+  list.sort((a, b) => b.score - a.score);
+  return {list, mode: jevAvailable() ? "jev" : "llm", note: ""};
+}
+
+/* —— Task-5 神经核验：双问题协议 v2 要素级提问（对齐 _verify_via_jev；
+      单条失败回落确定性档位，与后端行为一致） —— */
+async function verifyNeural(q, prop){
+  const core = (prop.mk && prop.mk[0]) || prop.zh;
+  const state = "【患者陈述】\n" + q + "\n\n【所属命题】" + prop.zh +
+                "（要素类别：" + prop.cat + "）";
+  const probs = await jevNoulBatch(state, {
+    p_men: ("患者陈述是否提及或涉及「" + core + "」这一临床要素？" +
+            "无论患者肯定它、明确否定它，还是表示尚未检查/不清楚，" +
+            "只要涉及即为真；完全未涉及为假。"),
+    p_sup: ("患者陈述是否以第一人称明确肯定、预设或复述了「" + core +
+            "」相关的临床事实（症状、诱因、持续时间、既往病史、体征数值）？" +
+            "明确肯定为真，明确否定或仅提及未确认为假。")
+  });
+  if (!probs) return null;
+  const role = probs.p_sup >= TAU_F ? "supported" : (probs.p_men >= TAU_F ? "gap" : "absent");
+  return {prop, p_men: probs.p_men, p_sup: probs.p_sup, role, evidence: [],
+          src: (prop.id.split("_")[1] || "")};
+}
+
+/* —— Task-6 LLM 五步生成（对齐 deductive_generator LLM 模式：
+      模板先建兜底 → LLM 覆盖 → 五步结构校验 → 红旗禁语清洗） —— */
+const LLM_SYSTEM_PROMPT = `你是受控演绎医疗导诊生成器。你只能依据输入中的【患者陈述】【CMCR病例证据】【已核验事实】生成回答，严禁使用任何未在输入中出现过的病例编号、患者事实或检查结论。
+
+必须严格按以下五个小节输出，使用完全一致的小节标题：
+(i) 分诊结论与紧急度：开门见山给出推荐就诊科室路径与就医紧急度（立即急诊 或 门诊就诊）。
+(ii) 表面诱因误区提醒：直接回应患者可能把症状错误归因于日常诱因的风险。
+(iii) 演绎事实映射：将【已核验事实-患者已确认】中的条目映射到对应CMCR病例的鉴别特征，说明"因为您已确认事实A和B，对应病例X的特征，所以需重点排查Y"。对【病例待核对特征】中的条目，只能表述为"检索到的病例提示您还需核对/排除……（该特征来自病例，不是您已确认的事实，需医生当面核实）"，严禁写成"您具备/您患有/您已出现"。
+(iv) 结论翻转边界与红旗警示：针对【已核验事实-gap】中的条目说明"尚未确认/暂未出现，一旦出现将立即升级风险"。
+(v) 下一步建议：列出到院后建议完善的检查与注意事项，最后另起一行以"[EN] "开头给出三句以内的英文摘要（英文摘要同样须区分 patient-confirmed 与 case-derived to-verify）。
+
+硬性规则：
+1. 若输入标注存在红旗征（is_red_flag=true）的supported事实（含患者已确认与待核对两栏），紧急度必须写"立即急诊"，且全文严禁出现"居家观察""在家观察""普通门诊随诊""无需就医"。
+2. 严禁引用任何【已核验事实-gap】或未提及的症状作为患者既有阳性事实（gap 只能作为"尚未确认"提及）。
+3. 严禁将【病例待核对特征】中的任何条目写成患者既有事实——这些特征来自候选病例原文而非患者陈述。
+4. 严禁开具具体处方药与剂量。
+5. 每个小节以"(i) "…"(v) "开头，正文通俗、面向患者。`;
+
+function buildLLMUserMsg(query, topCases, supportedFacts, gapFacts, caseFeats){
+  const blocks = topCases.map(c =>
+    "【病例 cmaid/" + c.c + "】《" + c.t + "》\n" +
+    "  病史摘要：" + shorten(c.h, 120) + "\n" +
+    "  症状体征：" + shorten(c.ss, 150) + "\n" +
+    "  确诊手段：" + shorten(c.dg, 120) + "\n" +
+    "  救治链科室：" + specialtyRoute(c, topCases));
+  const supLines = supportedFacts.slice()
+    .sort((a, b) => ((a.prop.rf ? 0 : 1) - (b.prop.rf ? 0 : 1)) || (b.p_sup - a.p_sup))
+    .slice(0, 8)
+    .map(f => "- " + f.prop.zh + " (p_sup=" + f.p_sup.toFixed(2) +
+              ", is_red_flag=" + (f.prop.rf ? "true" : "false") + ")");
+  const featLines = (caseFeats || []).slice()
+    .sort((a, b) => ((a.prop.rf ? 0 : 1) - (b.prop.rf ? 0 : 1)) || (b.p_sup - a.p_sup))
+    .slice(0, 6)
+    .map(f => "- " + f.prop.zh + " (来自病例 cmaid/" + f.src +
+              ", p_sup=" + f.p_sup.toFixed(2) +
+              ", is_red_flag=" + (f.prop.rf ? "true" : "false") + ")");
+  const gapLines = gapFacts.slice()
+    .sort((a, b) => ((a.prop.rf ? 0 : 1) - (b.prop.rf ? 0 : 1)) || (b.p_men - a.p_men))
+    .slice(0, 8)
+    .map(f => "- " + f.prop.zh + " (p_men=" + f.p_men.toFixed(2) +
+              ", is_red_flag=" + (f.prop.rf ? "true" : "false") + ")");
+  return ("【患者陈述】\n" + query + "\n\n【CMCR病例证据】\n" + blocks.join("\n") +
+          "\n\n【已核验事实-患者已确认】\n" + (supLines.join("\n") || "（无）") +
+          "\n\n【病例待核对特征（来自病例原文，严禁写成患者事实）】\n" + (featLines.join("\n") || "（无）") +
+          "\n\n【已核验事实-gap】\n" + (gapLines.join("\n") || "（无）"));
+}
+
+function parseLLMSections(text){
+  /* 按 "(i)"…"(v)" 小节标题切分（对齐 _parse_llm_sections，含缺失标记置 1e9） */
+  const marks = [["(i)", "i"], ["(ii)", "ii"], ["(iii)", "iii"],
+                 ["(iv)", "iv"], ["(v)", "v"]];
+  const pos = marks.map(([mk, key]) =>
+    [text.indexOf(mk) >= 0 ? text.indexOf(mk) : 1e9, key]);
+  const order = pos.map((p, i) => [p[0], i])
+    .sort((a, b) => a[0] - b[0]).map(p => p[1]);
+  const sections = {};
+  for (let j = 0; j < order.length; j++){
+    const a = pos[order[j]][0];
+    const b = j + 1 < order.length ? pos[order[j + 1]][0] : text.length;
+    if (a >= text.length) continue;
+    const seg = text.slice(a, b).trim();
+    if (seg) sections[pos[order[j]][1]] = seg;
+  }
+  return sections;
+}
+
+function scrubLLMRedFlags(ans){
+  /* 红旗硬规则：清洗 LLM 输出中的反向致命表述（对齐 _scrub_red_flag_violations） */
+  if (!ans.red_flag) return;
+  for (const key of Object.keys(ans.sections)){
+    let txt = ans.sections[key];
+    for (const ph of FORBIDDEN_PHRASES_RED_FLAG){
+      if (txt.includes(ph)){
+        txt = txt.split(ph).join("急诊就诊");
+        ans.veto2 = true;
+      }
+    }
+    ans.sections[key] = txt;
+  }
+  /* 英文摘要反向致命降级清洗（2026-10-31 评测实测：正文已升级急诊但
+     [EN] 摘要仍写 "Outpatient visit"，被裁判判 Veto 2） */
+  if (ans.en_summary){
+    const low = ans.en_summary.toLowerCase();
+    if (low.includes("outpatient") || low.includes("home observation")){
+      ans.en_summary = ans.en_summary
+        .split("Outpatient visit").join("Emergency department NOW")
+        .split("outpatient visit").join("Emergency department NOW");
+      ans.veto2 = true;
+    }
+  }
+  ans.urgency = EMERGENCY_NOW;
+  if (!ans.sections.i.includes(EMERGENCY_NOW))
+    ans.sections.i = ("建议就诊路径：" + ans.route +
+      "；就医紧急度：**" + EMERGENCY_NOW + "**。") + (ans.sections.i || "");
+}
+
+async function generateAnswer(q, topCases, gated, allFacts){
+  const supported = gated.supported, gap = gated.gap, chips = gated.chips;
+
+  /* Veto 4 防线第二层：supported 双栏拆分（患者已确认 vs 病例待核对特征） */
+  const [affirmed, caseFeats0] = splitSupportedFacts(q, supported, topCases);
+  /* 红旗召回安全网：Jev 未判 supported 但确定性锚点命中的红旗命题，
+     以"待核对红旗特征"身份参与升级判定（宁升级勿漏） */
+  const rescued = rescueRedFlags(q, allFacts, topCases);
+  const caseFeats = caseFeats0.concat(rescued);
+  const propMap = {};
+  for (const c of topCases) for (const p of c.ps) propMap[p.id] = p;
+
+  /* 红旗事实必须参与 LLM/模板判定（supported 与 gap 中的红旗都影响升级逻辑，
+     但强制升级仅由 supported 红旗触发——gap 红旗走步骤 (iv) 的条件警示） */
+  const ans = buildTemplateAnswer(q, topCases, affirmed, gap, chips, caseFeats);
+  ans.rescued_n = rescued.length;
+
+  if (!CFG.useLLMGen){
+    posthocFactGuard(ans, affirmed, caseFeats, gap, propMap, q);
+    return ans;
+  }
+  if (!ptAvailable()){
+    ans.fallback_reason = "未配置 PARATERA_API_KEY/PARATERA_DECOMPOSE_MODEL";
+    return ans;
+  }
+  const candidates = [CFG.ptModel, "DeepSeek-V4.1-Flash-1017", "DeepSeek-V4.1-Flash"]
+    .filter((v, i, a) => v && a.indexOf(v) === i);
+  let raw = "", lastErr = "";
+  for (const model of candidates){
+    for (let attempt = 0; attempt < 2; attempt++){
+      try {
+        raw = await ptChat([{role: "system", content: LLM_SYSTEM_PROMPT},
+                            {role: "user", content: buildLLMUserMsg(q, topCases, affirmed, gap, caseFeats)}],
+                           0.2, model);
+        if (raw) break;
+        lastErr = model + " 返回空";
+      } catch (e) {
+        lastErr = model + "(第" + (attempt + 1) + "次): " +
+                  String(e && e.message || e).slice(0, 120);
+      }
+    }
+    if (raw) break;
+  }
+  if (!raw){
+    ans.fallback_reason = "LLM 调用失败（" + lastErr + "）";
+    posthocFactGuard(ans, affirmed, caseFeats, gap, propMap, q);
+    return ans;
+  }
+  const sections = parseLLMSections(raw);
+  if (Object.keys(sections).length < 5){
+    ans.fallback_reason = "LLM 输出未满足五步结构";
+    posthocFactGuard(ans, affirmed, caseFeats, gap, propMap, q);
+    return ans;
+  }
+  ans.mode = "llm";
+  ans.sections = sections;
+  const enKey = Object.keys(sections).find(k => sections[k].startsWith("[EN]"));
+  if (enKey !== undefined){
+    ans.en_summary = sections[enKey];
+    delete sections[enKey];
+    ans.sections = sections;
+  }
+  scrubLLMRedFlags(ans);
+  posthocFactGuard(ans, affirmed, caseFeats, gap, propMap, q);
+  return ans;
+}
+
+/* ================================================================
+   全管线编排：Stage 1 → Stage 2 → Task 5 → Task 6（与后端 CLI 链路一致；
+   配置 API Key 后 Stage-2 / Task-5 / Task-6 自动切换真实神经链路）
+================================================================ */
+const VERIFY_PROP_CAP = 30;          /* 后端 --props 默认；语料已按 select_props 顺序内嵌，逐例全量核验 */
+const STAGE1_K = 50, TOPK_CASES = 2;
+const pipeCache = new Map();
+
+function runPipeline(rawQuery){
+  const q = rawQuery.trim();
+  if (pipeCache.has(q)) return pipeCache.get(q);
+  const p = runPipelineAsync(q);
+  pipeCache.set(q, p);
+  p.catch(() => pipeCache.delete(q));
+  return p;
+}
+
+async function runPipelineAsync(q){
+  const t0 = performance.now();
+  const stage1 = stage1Query(q, STAGE1_K);
+  let ranked, s2mode = "lexical", s2note = "";
+  if (jevAvailable() || ptAvailable()){
+    const s2 = await stage2RerankNeural(q, stage1);
+    ranked = s2.list; s2mode = s2.mode; s2note = s2.note;
+  } else {
+    ranked = stage2Rerank(q, stage1);
+  }
+  const topCases = ranked.slice(0, TOPK_CASES)
+    .map(r => CORPUS.cases[IDX.byCmaid.get(r.cmaid)]);
+  const qExp = expandColloquial(q);
+  const props = [];
+  /* 语料 ps 已按 select_props(PROP_CAP) 顺序构建（红旗优先），此处不再二次裁剪——
+     红旗命题超出 cap 时同样全量核验（与后端一致） */
+  for (const c of topCases)
+    for (const prop of c.ps) props.push(prop);
+  let facts;
+  if (jevAvailable()){
+    /* 后端 verify_query：API 模式同样使用口语归一化后的 q_exp（缓存键一致） */
+    facts = await pooledMap(props, async prop =>
+      (await verifyNeural(qExp, prop)) || verifyDeterministic(qExp, prop), 8);
+  } else {
+    facts = props.map(prop => verifyDeterministic(qExp, prop));
+  }
+  const gated = filterFactsForGenerator(facts);
+  const answer = await generateAnswer(q, topCases, gated, facts);
+  const factsTop1 = facts.filter(f => f.src === (topCases[0] || {}).c);
+  return {q, ranked, s2mode, s2note, topCases, facts, factsTop1, gated, answer,
+          ms: Math.round(performance.now() - t0)};
+}
+
+/* ============ 会话状态 ============ */
+let statements = [];      /* 每轮患者陈述（原始文本） */
+let roundCache = [];      /* 每轮管线结果（runPipeline 输出） */
+const joinStatements = () => statements.join(" ； ");   /* 与 app.py 多轮拼接一致 */
+
+/* ============ i18n 应用 ============ */
+function applyI18n(){
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = UI[el.dataset.i18n][lang]; });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = UI[el.dataset.i18nHtml][lang]; });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = UI[el.dataset.i18nPh][lang]; });
+  document.querySelectorAll("[data-fillkey]").forEach(el => { el.textContent = FILLS[el.dataset.fillkey].txt[lang]; });
+  document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+  $("#langZh").classList.toggle("on", lang === "zh");
+  $("#langEn").classList.toggle("on", lang === "en");
+  document.body.classList.toggle("lang-en", lang === "en");
+  document.body.classList.toggle("lang-zh", lang === "zh");
+}
+
+/* ============ 渲染 ============ */
+function skeletons(panel, note){
+  panel.innerHTML =
+    (note ? `<p class="load-note">${note}</p>` : "") +
+    `<div class="skeleton"><div class="sk-line w80"></div><div class="sk-line w60"></div><div class="sk-line"></div><div class="sk-line w45"></div></div>`;
+}
+function pushUser(text){
+  const d = document.createElement("div");
+  d.className = "msg user"; d.textContent = text;
+  chatBox.appendChild(d);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+function pushBot(html){
+  const d = document.createElement("div");
+  d.className = "msg bot"; d.innerHTML = html;
+  chatBox.appendChild(d);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+function botNote(res){
+  const rf = res.answer.red_flag;
+  const urg = rf ? "立即急诊" : "门诊就诊";
+  const s2lbl = res.s2mode === "jev" ? "Jev Noul 神经精排"
+              : res.s2mode === "llm" ? "LLM 判别精排" : "词面覆盖率兜底精排";
+  pushBot(
+    "已由真实管线完成 Stage-1 混合召回（" + IDX.N + " 例）→ Stage-2 " + s2lbl +
+    " → 双问题核验（" + res.facts.length + " 命题" +
+    (jevAvailable() ? "，神经 Jev 协议" : "，确定性规则档位") + "）→ " +
+    (res.answer.mode === "llm" ? "LLM 受控演绎生成" : "模板受控演绎生成") +
+    "（耗时 " + res.ms + "ms）。就医紧急度判定为 <b style=\"color:" +
+    (rf ? "var(--flag)" : "var(--brand-ink)") + "\">" + urg + "</b>，右侧面板为全程真实计算结果。" +
+    (rf ? "<div class=\"en-sub\">🚨 已核验的红旗征触发了急危升级硬规则，请立即前往急诊科。</div>" : ""));
+}
+function pushVerdict(res){
+  const a = res.answer, urgent = a.red_flag;
+  const d = document.createElement("div");
+  d.className = "msg verdict " + (urgent ? "alarm" : "calm");
+  d.setAttribute("role", "status");
+  const tips = urgent
+    ? ["点击 04 面板中的红旗横幅可查看触发的红旗命题与升级建议",
+       "Open the red-flag banner in panel 04 for verified red-flag propositions and escalation advice"]
+    : ["若症状突然加重（剧烈胸痛、明显气短、意识改变），请立即拨打 120",
+       "If symptoms worsen suddenly (severe chest pain, marked dyspnea, altered consciousness), call 120 immediately"];
+  const tip = lang === "zh" ? tips[0] : tips[1];
+  d.innerHTML = `
+    <div class="v-head"><span class="ic">${urgent ? "🚨" : "🏥"}</span>${urgent ? (lang==="zh"?"建议：立即前往急诊":"Recommendation: go to the ED now") : (lang==="zh"?"建议：前往门诊就诊":"Recommendation: visit an outpatient clinic")}</div>
+    <div class="v-route">${lang==="zh"?"首诊路径":"Triage route"}：${esc(a.route)}</div>
+    <div class="v-tip">${esc(tip)}</div>`;
+  chatBox.appendChild(d);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function showRFModal(extraProps){
+  const res = roundCache[roundCache.length-1];
+  if (!res) return;
+  const rfSup = res.facts.filter(f => f.prop.rf && f.role === "supported").map(f => f.prop.zh);
+  const list = (extraProps || []).concat(rfSup);
+  if (!list.length) return;
+  $("#rfmTitle").textContent = lang==="zh" ? "危急红旗征警报" : "Critical Red-Flag Alert";
+  $("#rfmSub").textContent = lang==="zh"
+    ? "双问题 Jev 核验确认以下危急征象成立，红旗急危升级硬规则已触发："
+    : "The two-question Jev verification confirmed the following critical signs. The red-flag escalation hard rule has been triggered:";
+  $("#rfmList").innerHTML = [...new Set(list)].map(p => `<div class="rfm-item">🚩 ${esc(p)}</div>`).join("");
+  $("#rfmAdvice").textContent = lang==="zh"
+    ? "请立即拨打 120 或由家属陪同前往急诊，勿自行驾车；若症状进一步加重，请当场呼叫医务人员。"
+    : "Call 120 immediately or go to the ED escorted by family - do not drive yourself. If symptoms worsen, call the staff on site.";
+  $("#rfmClose").textContent = lang==="zh" ? "我知道了" : "Got it";
+  $("#rfModal").hidden = false;
+  $("#rfmClose").focus();
+}
+
+function renderTimeline(rounds){
+  const tlArrow = i => `<span class="tl-arrow" style="--d:${Math.max(i*0.35-0.17,0).toFixed(2)}s" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M4.5 2.5L9.5 7l-5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+  const tlNode = (r,i) => {
+    const isNow = i === rounds.length-1;
+    const total = Math.max(r.sup + r.gap + r.abs, 1);
+    const hot = r.hot;
+    const cLbl = lang==="zh" ? ["确","疑","断"] : ["Sup","Gap","Abs"];
+    return `
+    <div class="tl-node ${isNow ? "now" : ""}" style="--d:${(i*0.35).toFixed(2)}s">
+      <div class="tl-head"><span class="tl-no">R${i+1}</span><span class="tl-round">${esc(r.label)}</span>${isNow ? '<i class="tl-live" title="live"></i>' : ""}</div>
+      <div class="tl-bar" role="img" aria-label="${cLbl[0]}${r.sup} / ${cLbl[1]}${r.gap} / ${cLbl[2]}${r.abs}">
+        <i class="b-sup" style="width:${(r.sup/total*100).toFixed(1)}%"></i>
+        <i class="b-gap" style="width:${(r.gap/total*100).toFixed(1)}%"></i>
+        <i class="b-abs" style="width:${(r.abs/total*100).toFixed(1)}%"></i>
+      </div>
+      <div class="tl-counts">
+        <span style="color:var(--sup)">${cLbl[0]}<b>${r.sup}</b></span>
+        <span style="color:var(--gap)">${cLbl[1]}<b>${r.gap}</b></span>
+        <span style="color:var(--abs)">${cLbl[2]}<b>${r.abs}</b></span>
+      </div>
+      <div class="tl-urg ${hot ? "hot" : ""}">${esc(r.urg)}</div>
+    </div>`;
+  };
+  const parts = [];
+  rounds.forEach((r,i) => { if (i) parts.push(tlArrow(i)); parts.push(tlNode(r,i)); });
+  $("#panelTimeline").innerHTML = parts.join("");
+}
+
+function renderAll(res){
+  const a = res.answer;
+
+  /* —— 演化时间线：每轮 = 该轮累积陈述下管线的真实三态计数 —— */
+  const rounds = roundCache.map((r,i) => ({
+    label: truncLbl(statements[i] || ""),
+    sup: r.facts.filter(f => f.role === "supported").length,
+    gap: r.facts.filter(f => f.role === "gap").length,
+    abs: r.facts.filter(f => f.role === "absent").length,
+    hot: r.answer.red_flag,
+    urg: r.answer.red_flag ? "立即急诊" : "门诊就诊"
+  }));
+  renderTimeline(rounds);
+
+  /* —— 01 检索精排（Stage-1 混合召回 → Stage-2 Pointwise 精排，真实分数） —— */
+  const rankLbl = lang==="zh" ? "Stage-2 判分理由" : "Stage-2 rationale";
+  const s2Tag = res.s2mode === "jev" ? (lang==="zh" ? "Jev Noul 神经评分" : "Jev Noul neural scoring")
+              : res.s2mode === "llm" ? (lang==="zh" ? "智算云 LLM 评分" : "Paratera LLM scoring")
+              : (lang==="zh" ? "词面覆盖率兜底（离线）" : "Lexical bigram coverage (offline)");
+  const reasonOf = r => r.reason_zh ||
+    (lang==="zh" ? "词面覆盖率兜底打分" : "Lexical bigram coverage (offline Stage-2 fallback)");
+  $("#panelRank").innerHTML =
+    `<div class="tau-note">${lang==="zh"?"Stage-2 模式":"Stage-2 mode"}：${esc(s2Tag)}` +
+    (res.s2note ? ` · ⚠️ ${esc(res.s2note)}` : "") + `</div>` +
+    res.ranked.slice(0,8).map((r,i) => `
+    <div class="rank-item">
+      <div class="rank-line">
+        <span class="rk">${i+1}</span>
+        <span class="cmaid">${esc(r.cmaid)}</span>
+        <span>${esc(r.title)}</span>
+        <span class="score num">${r.score.toFixed(2)}</span>
+      </div>
+      <div class="meter"><i style="width:${Math.min(100, r.score*100).toFixed(1)}%"></i></div>
+      <div class="reason">${rankLbl}：${esc(reasonOf(r))} · ${lang==="zh"?"Stage-1 混合召回":"Stage-1 hybrid recall"} Top-${STAGE1_K} → 精排 Top-${TOPK_CASES}</div>
+    </div>`).join("") ||
+    `<div class="empty-state">${lang==="zh"?"Stage-1 未能召回匹配病例，请补充症状描述。":"Stage-1 recalled no matching cases - add more symptom detail."}</div>`;
+
+  /* —— 02 命题拆解（Top-1 病例离线命题集，查询无关） —— */
+  const top1 = res.topCases[0];
+  const mLbl = lang==="zh" ? "查询无关 · 离线预计算" : "query-independent · precomputed offline";
+  $("#panelProps").innerHTML = top1
+    ? `<div class="tau-note">Top-1 《${esc(top1.t)}》 · cmaid/${esc(top1.c)} · ${mLbl} · M=${top1.ps.length}</div>` +
+      top1.ps.map((p,i) => `
+      <div class="prop-card" style="border-left-color:${p.rf ? "var(--flag)" : "var(--line)"}">
+        <div class="prop-top">
+          <span class="prop-id num">${String(i+1).padStart(2,"0")}</span>
+          <span class="prop-zh">${esc(p.zh)}</span>
+          ${p.rf ? `<span class="rf-tag">${lang==="zh"?"红旗征":"RED FLAG"}</span>` : `<span class="meta-tag">${esc(p.cat)}</span>`}
+        </div>
+        <div class="prop-en en-sub">${esc(p.en || "")}</div>
+      </div>`).join("")
+    : `<div class="empty-state">${lang==="zh"?"无 Top-1 病例。":"No Top-1 case."}</div>`;
+
+  /* —— 03 双问题核验（Top-1 病例逐命题三态判定） —— */
+  const vMode = jevAvailable()
+    ? (lang==="zh" ? "神经 Jev 双问题协议 v2（单条失败逐条回落确定性规则）"
+                   : "Neural Jev two-question protocol v2 (per-prop deterministic fallback)")
+    : (lang==="zh" ? "双问题 Jev 确定性规则模式" : "two-question Jev deterministic mode");
+  $("#panelVerify").innerHTML = res.factsTop1.length
+    ? `<div class="tau-note">Top-1 cmaid/${esc(top1.c)} · τ_f=<span class="num">${TAU_F.toFixed(2)}</span> · ${vMode}</div>` +
+      res.factsTop1.map((f,i) => `
+      <div class="prop-card ${f.role}">
+        <div class="prop-top">
+          <span class="prop-id num">${String(i+1).padStart(2,"0")}</span>
+          <span class="prop-zh">${esc(f.prop.zh)}</span>
+          ${f.prop.rf ? `<span class="rf-tag">${lang==="zh"?"红旗征":"RED FLAG"}</span>` : ""}
+          <span class="role-badge ${f.role}">${roleLabel[f.role]}</span>
+        </div>
+        <div class="prop-en en-sub">${esc(f.prop.en || "")}</div>
+      </div>`).join("")
+    : `<div class="empty-state">${lang==="zh"?"无进入核验的命题。":"No propositions verified."}</div>`;
+
+  /* —— 04 五步受控演绎导诊 —— */
+  const rfHit = res.factsTop1.filter(f => f.prop.rf && f.role !== "absent");
+  const rfAbs = res.factsTop1.filter(f => f.prop.rf && f.role === "absent");
+  const rfAdvice = a.red_flag
+    ? {zh:"立即拨打 120 或由家属陪同前往急诊，勿自行驾车；携带现用药物与既往检查结果；就诊时首先说明症状起始时间与变化过程。若症状进一步加重，请当场呼叫医务人员。",
+       en:"Call 120 immediately or go to the ED escorted by family; do not drive yourself. Bring current medications and prior test results; state the onset time and progression first. If symptoms worsen further, call the staff on site."}
+    : {zh:"当前无红旗征触发，按门诊路径评估即可；若症状突然加重（剧烈胸痛、明显气短、意识改变、大汗），请立即拨打 120，不要等待门诊预约。",
+       en:"No red flag triggered - follow the outpatient pathway. If symptoms worsen suddenly (severe chest pain, marked dyspnea, altered consciousness, profuse sweating), call 120 immediately; do not wait for an appointment."};
+  const stepTitles = {
+    i:{zh:"分诊结论与紧急度",en:"Triage conclusion & urgency"},
+    ii:{zh:"表面诱因误区提醒",en:"Surface-cause caveat"},
+    iii:{zh:"演绎事实映射",en:"Deductive fact mapping"},
+    iv:{zh:"边界与红旗警示",en:"Boundaries & red-flag alerts"},
+    v:{zh:"下一步建议",en:"Next steps"}
+  };
+  const metaMode = lang==="zh" ? "生成模式" : "Generation mode";
+  const metaFlag = lang==="zh" ? "红旗升级" : "Red-flag escalation";
+  const metaVeto = lang==="zh" ? "禁语清洗" : "Veto-2 scrubbing";
+  const metaS2 = lang==="zh" ? "Stage-2 模式" : "Stage-2 mode";
+  const metaPosthoc = lang==="zh" ? "事后事实校验" : "Post-hoc fact guard";
+  const metaRescue = lang==="zh" ? "红旗召回" : "Red-flag rescue";
+  const yes = lang==="zh" ? "触发" : "triggered", no = lang==="zh" ? "未触发" : "not triggered";
+  const done = lang==="zh" ? "已执行" : "executed";
+  const citeLbl = lang==="zh" ? "引用病例" : "Cited cases";
+  const urgLbl = lang==="zh" ? "就医紧急度" : "Urgency";
+  const routeLbl = lang==="zh" ? "就诊路径" : "Route";
+  const emptySec = lang==="zh" ? "（无内容）" : "(no content)";
+  $("#panelAnswer").innerHTML = `
+    <div class="ans-meta">
+      <span class="meta-tag">${metaMode} <span class="num">${a.mode}</span></span>
+      <span class="meta-tag">${metaFlag} <span class="num">${a.red_flag ? yes : no}</span></span>
+      <span class="meta-tag">${metaVeto} <span class="num">${a.veto2 ? done : no}</span></span>
+      <span class="meta-tag scrub">${metaS2} <span class="num">${esc(s2Tag)}</span></span>
+      <span class="meta-tag">${metaPosthoc} <span class="num">${a.posthoc ? done : no}</span></span>
+      <span class="meta-tag">${metaRescue} <span class="num">${a.rescued_n ? (lang==="zh" ? "救回 " + a.rescued_n + " 条" : a.rescued_n + " rescued") : no}</span></span>
+      ${a.fallback_reason ? `<span class="meta-tag scrub">⚠️ ${esc(a.fallback_reason)}</span>` : ""}
+    </div>
+    <details class="urg-banner ${a.red_flag ? "alarm" : "calm"}" role="alert">
+      <summary>
+        <span class="ic">${a.red_flag ? "🚨" : "✅"}</span>
+        <span>${urgLbl}：${esc(a.urgency)}<br>
+        <span style="font-weight:400">${routeLbl}：${esc(a.route)}</span></span>
+        <span class="ub-caret">▶</span>
+      </summary>
+      <div class="ub-body">
+        <div class="ub-t">${lang==="zh"?"红旗详情 — Top-1 病例中被确认/存疑的红旗命题":"Red-flag details - confirmed / uncertain red-flag propositions of Top-1"}</div>
+        ${rfHit.length
+          ? rfHit.map(f => `<div class="ub-item"><span class="role-badge ${f.role}">${roleLabel[f.role]}</span>${esc(f.prop.zh)}<span class="num">p_sup=${f.p_sup.toFixed(2)} · p_men=${f.p_men.toFixed(2)}</span></div>`).join("")
+          : `<div class="ub-item">${lang==="zh"?"无被确认或存疑的红旗命题":"No confirmed or uncertain red-flag propositions"}</div>`}
+        ${rfAbs.length ? `<div class="ub-t" style="margin-top:8px">${lang==="zh"?"未提及（硬闸门剔除，不参与推理）":"Not mentioned (hard-gated, never reasoned over)"}</div>` +
+          rfAbs.map(f => `<div class="ub-item dim">✕ ${esc(f.prop.zh)}</div>`).join("") : ""}
+        <div class="ub-t" style="margin-top:8px">${lang==="zh"?"升级建议":"Escalation advice"}</div>
+        <div class="ub-item">${esc(rfAdvice[lang])}</div>
+      </div>
+    </details>
+    <div style="margin-top:11px">
+      ${["i","ii","iii","iv","v"].map((k,idx) => `
+        <details class="step ${k==="iv"?"iv":""}" ${idx===0?"open":""}>
+          <summary><span class="sno">(${k})</span>${esc(stepTitles[k][lang])}<span class="caret">▶</span></summary>
+          <div class="sbody">${esc(a.sections[k] || "") || emptySec}</div>
+        </details>`).join("")}
+    </div>
+    ${lang==="zh" && a.en_summary ? `<div class="en-answer en-sub">${esc(a.en_summary)}</div>` : ""}
+    <div class="cite-row">${citeLbl}：${a.cited.map(c => `<a href="https://rs.yiigle.com/cmaid/${esc(c)}" target="_blank" rel="noopener">cmaid/${esc(c)}</a>`).join(" · ") || "—"}</div>`;
+
+  /* —— 标签更新提示 —— */
+  ["panelRank","panelProps","panelVerify","panelAnswer"].forEach(id => {
+    const t = document.querySelector(`.tab[data-tab="${id}"]`);
+    if (t && !t.classList.contains("active")) t.classList.add("fresh");
+  });
+
+  /* —— 追问胶囊（硬闸门导出的 pending_clarification_chips） —— */
+  const chips = res.gated.chips;
+  const zone = $("#chipsZone"), row = $("#chipsRow");
+  if (chips.length){
+    zone.hidden = false;
+    row.innerHTML = chips.map(c =>
+      `<button class="chip-btn" data-chip="${esc(c)}">➕ ${esc(c)}</button>`).join("");
+  } else { zone.hidden = true; }
+
+  /* —— 对话流醒目建议卡 —— */
+  pushVerdict(res);
+}
+
+/* ============ 管线运行与提交 ============ */
+function ensureIndexBuilt(){
+  if (!IDX.built) buildIndex();
+  const b = $("#badgeEngine");
+  b.textContent = UI.engReady[lang];
+  b.classList.remove("warn"); b.classList.add("ok");
+}
+
+function pushLoading(){
+  const parts = [];
+  if (jevAvailable() || ptAvailable()){
+    parts.push("Stage-2 " + (jevAvailable() ? "Jev Noul" : "智算云 LLM") +
+               " 神经精排（Top-" + STAGE1_K + " 候选逐例真实判别）");
+    if (jevAvailable()) parts.push("Task-5 神经双问题核验（每条命题一次 Jev 校准概率）");
+    if (ptAvailable() && CFG.useLLMGen) parts.push("Task-6 LLM 受控演绎生成");
+  }
+  const d = document.createElement("div");
+  d.className = "msg bot";
+  d.innerHTML = '<span class="load-note">真实管线推理中…</span>' +
+    (parts.length
+      ? '<div class="en-sub">已启用神经链路：' + esc(parts.join("；")) +
+        '。请稍候，耗时约为离线确定性模式的数十倍。</div>'
+      : "");
+  chatBox.appendChild(d);
+  chatBox.scrollTop = chatBox.scrollHeight;
+  return d;
+}
+
+async function submitStatement(text){
+  if (IDX.building){                       /* 索引仍在构建：稍后自动重试 */
+    setTimeout(() => submitStatement(text), 120);
+    return;
+  }
+  ensureIndexBuilt();
+  pushUser(text);
+  statements.push(text);
+  const loadEl = pushLoading();
+  let res;
+  try {
+    res = await runPipeline(joinStatements());
+  } catch (err){
+    statements.pop();
+    loadEl.remove();
+    pushBot("⚠️ 管线运行异常：" + esc(String(err && err.message || err)));
+    return;
+  }
+  loadEl.remove();
+  roundCache.push(res);
+  botNote(res);
+  activateTab("panelRank");
+  renderAll(res);
+  if (res.answer.red_flag) showRFModal();
+}
+
+/* ============ 右栏标签导航 ============ */
+function activateTab(id){
+  document.querySelectorAll('.tab').forEach(t => {
+    const on = t.dataset.tab === id;
+    t.classList.toggle('active', on);
+    t.setAttribute('aria-selected', on ? "true" : "false");
+    if (on) t.classList.remove('fresh');
+  });
+  document.querySelectorAll('.tabpane').forEach(p => p.classList.toggle('active', p.id === id));
+}
+document.querySelectorAll('.tab').forEach(t =>
+  t.addEventListener('click', () => activateTab(t.dataset.tab)));
+
+/* ============ 事件 ============ */
+document.querySelectorAll("[data-scenario]").forEach(b =>
+  b.addEventListener("click", () => {
+    resetSession(true);
+    submitStatement(SCENARIO_QUERIES[b.dataset.scenario][lang]);
+  }));
+
+document.querySelectorAll("[data-fillkey]").forEach(b =>
+  b.addEventListener("click", () => {
+    $("#queryInput").value = FILLS[b.dataset.fillkey].val[lang];
+    $("#queryInput").focus();
+  }));
+
+$("#inputForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const v = $("#queryInput").value.trim();
+  if (!v) return;
+  $("#queryInput").value = "";
+  submitStatement(v);
+});
+
+document.addEventListener("click", e => {
+  const chip = e.target.closest("[data-chip]");
+  if (!chip) return;
+  submitStatement(chip.dataset.chip);
+});
+
+/* ============ 红旗弹窗关闭 ============ */
+$("#rfmClose").addEventListener("click", () => { $("#rfModal").hidden = true; });
+$("#rfModal").addEventListener("click", e => { if (e.target.id === "rfModal") $("#rfModal").hidden = true; });
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("#rfModal").hidden = true; });
+
+/* ============ API Key 配置面板 ============ */
+const CFG_FIELDS = ["jevKey","jevUrl","jevModel","ptKey","ptUrl","ptModel"];
+function openCfg(){
+  CFG_FIELDS.forEach(id => { $("#cfg_" + id).value = CFG[id] || ""; });
+  $("#cfg_useLLMGen").checked = !!CFG.useLLMGen;
+  $("#cfgStatus").textContent = "";
+  $("#cfgModal").hidden = false;
+}
+function closeCfg(){ $("#cfgModal").hidden = true; }
+function updateModeBadge(){
+  const b = $("#badgeMode");
+  if (!b) return;
+  const neural = jevAvailable() || ptAvailable();
+  b.textContent = neural ? (lang === "zh" ? "神经模式" : "Neural")
+                         : (lang === "zh" ? "离线模式" : "Offline");
+  b.classList.toggle("on", neural);
+  b.title = lang === "zh" ? "点击配置神经链路 API Key" : "Click to configure neural API keys";
+}
+$("#btnCfg").addEventListener("click", openCfg);
+$("#badgeMode").addEventListener("click", openCfg);
+$("#cfgClose").addEventListener("click", closeCfg);
+$("#cfgModal").addEventListener("click", e => { if (e.target.id === "cfgModal") closeCfg(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#cfgModal").hidden) closeCfg(); });
+$("#cfgSave").addEventListener("click", () => {
+  CFG_FIELDS.forEach(id => { CFG[id] = $("#cfg_" + id).value.trim(); });
+  CFG.useLLMGen = $("#cfg_useLLMGen").checked;
+  saveCfg();
+  closeCfg();
+  pushBot(lang === "zh"
+    ? "⚙️ 已保存 API 配置。" + ((jevAvailable() || ptAvailable())
+        ? "后续查询将走真实神经链路（按可用 Key 自动启用 Stage-2 精排 / Task-5 核验 / Task-6 生成），历史会话缓存已失效、追问时将全量重算。"
+        : "未检测到 Key，继续使用离线确定性档位。")
+    : "⚙️ API configuration saved." + ((jevAvailable() || ptAvailable())
+        ? " Subsequent queries will run the real neural pipeline." : ""));
+});
+$("#cfgClear").addEventListener("click", () => {
+  CFG = Object.assign({}, CFG_DEFAULT);
+  LS.removeItem("medir_cfg_v1");
+  CFG_FIELDS.forEach(id => { $("#cfg_" + id).value = ""; });
+  $("#cfg_useLLMGen").checked = false;
+  pipeCache.clear();
+  updateModeBadge();
+  $("#cfgStatus").textContent = lang === "zh" ? "已清除本机保存的全部配置。" : "All configuration cleared.";
+});
+$("#cfgTestJev").addEventListener("click", async () => {
+  const bak = Object.assign({}, CFG);
+  CFG_FIELDS.forEach(id => { CFG[id] = $("#cfg_" + id).value.trim(); });
+  const st = $("#cfgStatus");
+  st.textContent = lang === "zh" ? "Jev 连通性测试中…" : "Testing Jev connectivity…";
+  try {
+    const probs = await jevNoulBatch("【测试】这是一条连通性测试陈述。",
+      {q: "无论内容如何，请返回 0 到 1 之间的一个校准概率。"});
+    st.textContent = probs
+      ? (lang === "zh" ? "✅ Jev 连通正常，Noul 返回 p=" + probs.q.toFixed(3)
+                       : "✅ Jev reachable, Noul p=" + probs.q.toFixed(3))
+      : (lang === "zh" ? "❌ Jev 调用失败：网络/跨域或 Key 无效（若控制台出现 CORS 报错，请将 Base URL 改指本地代理）。"
+                       : "❌ Jev call failed: network/CORS or invalid key.");
+  } catch (e) {
+    st.textContent = "❌ " + String(e && e.message || e);
+  }
+  Object.assign(CFG, bak);
+});
+$("#cfgTestPt").addEventListener("click", async () => {
+  const bak = Object.assign({}, CFG);
+  CFG_FIELDS.forEach(id => { CFG[id] = $("#cfg_" + id).value.trim(); });
+  const st = $("#cfgStatus");
+  st.textContent = lang === "zh" ? "智算云连通性测试中…" : "Testing Paratera connectivity…";
+  try {
+    const out = await ptChat([{role: "user", content: "请只回复两个字：正常"}],
+                             0, $("#cfg_ptModel").value.trim() || CFG.ptModel, 60000);
+    st.textContent = out
+      ? (lang === "zh" ? "✅ 智算云连通正常，模型回复：" + out.trim().slice(0, 40)
+                       : "✅ Paratera reachable: " + out.trim().slice(0, 40))
+      : (lang === "zh" ? "❌ 智算云返回为空。" : "❌ Empty response.");
+  } catch (e) {
+    st.textContent = "❌ " + String(e && e.message || e) +
+      (lang === "zh" ? "（若控制台出现 CORS 报错，请将 Base URL 改指本地代理）" : "");
+  }
+  Object.assign(CFG, bak);
+});
+
+/* ============ 语言切换（即时重渲染缓存轮次，不重跑管线） ============ */
+$("#langZh").addEventListener("click", () => { if (lang !== "zh"){ lang = "zh"; applyI18n(); updateModeBadge(); rerenderFromCache(); } });
+$("#langEn").addEventListener("click", () => { if (lang !== "en"){ lang = "en"; applyI18n(); updateModeBadge(); rerenderFromCache(); } });
+
+function rerenderFromCache(){
+  if (!roundCache.length){ $("#btnReset").click(); return; }
+  /* 语言切换后按原始陈述重跑管线（陈述文本本身不变，缓存仍命中） */
+  chatBox.innerHTML = "";
+  roundCache = [];
+  statements.forEach(() => {});            /* 陈述保留 */
+  const stmts = statements.slice();
+  statements = [];
+  chatBox.appendChild(Object.assign(document.createElement("div"),
+    {className:"empty-state", textContent: lang==="zh" ? "已切换语言，正在重放会话…" : "Language switched, replaying session…"}));
+  (async function next(i){
+    if (i >= stmts.length) return;
+    const res = await runPipeline(stmts.slice(0, i+1).join(" ； "));
+    statements = stmts.slice(0, i+1);
+    roundCache.push(res);
+    pushUser(stmts[i]);
+    botNote(res);
+    pushVerdict(res);
+    if (i + 1 < stmts.length){ setTimeout(() => next(i+1), 30); }
+    else { renderAll(res); if (res.answer.red_flag) showRFModal(); }
+  })(0);
+}
+
+/* ============ 重置 ============ */
+function resetSession(silent){
+  statements = []; roundCache = []; pipeCache.clear();
+  chatBox.innerHTML = `<div class="empty-state">${UI.chatEmpty[lang]}</div>`;
+  ["#panelRank","#panelProps","#panelVerify","#panelAnswer"].forEach(s => {
+    $(s).innerHTML = `<div class="empty-state">${lang==="zh"?"等待查询":"Waiting for a query"}</div>`;
+  });
+  $("#chipsZone").hidden = true;
+  $("#panelTimeline").innerHTML = `<div class="empty-state" style="padding:12px">${UI.tlEmpty[lang]}</div>`;
+  if (!silent) $("#btnReset").blur && $("#btnReset").blur();
+}
+$("#btnReset").addEventListener("click", () => resetSession(false));
+
+/* ============ 初始渲染 + 后台预构建 Stage-1 索引 ============ */
+applyI18n();
+updateModeBadge();
+resetSession(true);
+if (CORPUS && CORPUS.cases && CORPUS.cases.length){
+  setTimeout(() => {
+    try {
+      buildIndex();
+      const b = $("#badgeEngine");
+      b.textContent = UI.engReady[lang];
+      b.classList.remove("warn"); b.classList.add("ok");
+    } catch (err){
+      const b = $("#badgeEngine");
+      b.textContent = (lang==="zh" ? "索引构建失败：" : "Index build failed: ") + String(err && err.message || err);
+    }
+  }, 350);
+} else {
+  $("#badgeEngine").textContent = lang==="zh" ? "语料为空，请先运行 build_frontend_real.py" : "Empty corpus - run build_frontend_real.py first";
+}
+</script>
+</body>
+</html>

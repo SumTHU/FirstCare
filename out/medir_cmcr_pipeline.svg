@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1760" viewBox="0 0 1500 1760" font-family="'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif">
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#9333ea"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1500" height="1760" fill="#ffffff"/>
+
+  <!-- ======== 标题 ======== -->
+  <text x="750" y="48" font-size="26" font-weight="700" text-anchor="middle" fill="#111827">MedIR-CMCR 项目全流程图</text>
+  <text x="750" y="76" font-size="13.5" text-anchor="middle" fill="#6b7280">示例主线：CMCR 病例 1673770《淋巴瘤合并噬血综合征》——“冰葡萄”患者口语主诉贯穿离线数据构建与在线导诊推理两条管线</text>
+
+  <!-- ======== 泳道 A：离线数据构建 ======== -->
+  <rect x="60" y="104" width="648" height="1516" rx="12" fill="#fbfdff" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <path d="M 60,116 A 12,12 0 0 1 72,104 L 696,104 A 12,12 0 0 1 708,116 L 708,148 L 60,148 Z" fill="#eff6ff"/>
+  <text x="82" y="133" font-size="16" font-weight="700" fill="#1d4ed8">离线 · 数据构建管线</text>
+  <text x="688" y="132" font-size="11" text-anchor="end" fill="#60a5fa">CMCR-Colloquial 数据集（报告 §1–§4）</text>
+
+  <!-- A1 爬虫抓取 -->
+  <rect x="88" y="190" width="592" height="124" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="88" y="190" width="4" height="124" rx="2" fill="#2563eb"/>
+  <circle cx="114" cy="216" r="11" fill="#dbeafe"/>
+  <text x="114" y="220" font-size="12" font-weight="700" text-anchor="middle" fill="#1d4ed8">1</text>
+  <text x="134" y="221" font-size="15" font-weight="600" fill="#111827">CMCR 数据源 · 爬虫抓取</text>
+  <text x="106" y="246" font-size="12.5" fill="#374151">中国临床案例成果数据库同行评审病例，JATS XML 全文；curl 传输 + 断点续传</text>
+  <text x="106" y="266" font-size="12.5" fill="#374151">两层症候群抓取：核心主诉（发热 / 腹痛）+ 红旗症候群（胸痛 / 呼吸困难 / 头痛 / 意识）</text>
+  <text x="106" y="286" font-size="12.5" fill="#6b7280">例：cmaid 1673770《淋巴瘤合并噬血综合征》病例 HTML / XML 原始存档</text>
+  <text x="106" y="306" font-size="12" font-weight="600" fill="#1d4ed8">候选池 1543 例：发热 606 · 腹痛 506 · 红旗症候群 431</text>
+
+  <path d="M 384,314 L 384,360" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- A2 结构化解析 -->
+  <rect x="88" y="360" width="592" height="120" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="88" y="360" width="4" height="120" rx="2" fill="#2563eb"/>
+  <circle cx="114" cy="386" r="11" fill="#dbeafe"/>
+  <text x="114" y="390" font-size="12" font-weight="700" text-anchor="middle" fill="#1d4ed8">2</text>
+  <text x="134" y="391" font-size="15" font-weight="600" fill="#111827">JATS 解析 → 结构化病例库</text>
+  <text x="106" y="416" font-size="12.5" fill="#374151">七槽位映射：一般资料 / 辅助检查 / 诊断与鉴别 / 诊疗经过 / 转归随访 / 讨论启示</text>
+  <text x="106" y="436" font-size="12.5" fill="#374151">生命体征数值化抽取 + 槽位-原文一致性校验，为下游防幻觉溯源保底</text>
+  <text x="106" y="456" font-size="12.5" fill="#6b7280">例：1673770 → case_1673770_structured.json；全库共 1341 例</text>
+
+  <path d="M 384,480 L 384,526" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- A3 命题拆解 -->
+  <rect x="88" y="526" width="592" height="120" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="88" y="526" width="4" height="120" rx="2" fill="#2563eb"/>
+  <circle cx="114" cy="552" r="11" fill="#dbeafe"/>
+  <text x="114" y="556" font-size="12" font-weight="700" text-anchor="middle" fill="#1d4ed8">3</text>
+  <text x="134" y="557" font-size="15" font-weight="600" fill="#111827">临床命题拆解（查询无关 · 可离线缓存）</text>
+  <text x="106" y="582" font-size="12.5" fill="#374151">每例拆为原子临床命题 + 四组判别关键词 + 前端追问文案</text>
+  <text x="106" y="602" font-size="12.5" fill="#6b7280">例 f₃：“静息 SpO₂&lt;93% 或伴明显气短 —— 红旗征要素”</text>
+  <text x="106" y="622" font-size="12" font-weight="600" fill="#1d4ed8">全库 43,271 条命题（均值 32.3 条/例），红旗命题占 23%</text>
+
+  <path d="M 384,646 L 384,692" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- A4 四阶段口语化构造（容器） -->
+  <rect x="88" y="692" width="592" height="708" rx="10" fill="#ffffff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="104" y="718" font-size="14.5" font-weight="700" fill="#111827">④ 四阶段口语化逆向构造（CMCR-Colloquial）</text>
+
+  <!-- S1 -->
+  <rect x="104" y="730" width="560" height="76" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="104" y="730" width="4" height="76" rx="2" fill="#2563eb"/>
+  <text x="120" y="754" font-size="14" font-weight="600" fill="#111827">Stage 1 · 金标准病例加载</text>
+  <text x="120" y="778" font-size="12.5" fill="#374151">直接复用②结构化病例与③命题集合，无需重复抽取</text>
+
+  <path d="M 384,806 L 384,848" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- S2 -->
+  <rect x="104" y="848" width="560" height="118" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="104" y="848" width="4" height="118" rx="2" fill="#2563eb"/>
+  <text x="120" y="872" font-size="14" font-weight="600" fill="#111827">Stage 2 · 患者口语咨询逆向构造</text>
+  <text x="120" y="896" font-size="12.5" fill="#374151">仅依据主诉 / 现病史槽位，改写为向 AI 健康助手的第一人称打字咨询</text>
+  <text x="120" y="915" font-size="12.5" fill="#374151">掩蔽专业医学术语、保留时间线与诱因、加入日常情绪噪声；严禁自我诊断</text>
+  <text x="120" y="934" font-size="12.5" fill="#6b7280">例：“你好，我前天吃了冰葡萄后发烧40度还吐，今天气短……可能是什么情况？”</text>
+  <text x="120" y="953" font-size="12" fill="#6b7280">红旗样本须自然嵌入红旗日常表述（如“胸口像被大石头压着喘不上气”）</text>
+
+  <path d="M 384,966 L 384,1008" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- S3 -->
+  <rect x="104" y="1008" width="560" height="96" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="104" y="1008" width="4" height="96" rx="2" fill="#2563eb"/>
+  <text x="120" y="1032" font-size="14" font-weight="600" fill="#111827">Stage 3 · 通俗导诊输出逆向构造</text>
+  <text x="120" y="1056" font-size="12.5" fill="#374151">依据鉴别诊断 / 诊疗经过 / 讨论警示，生成推荐科室 + 就医紧急度 + 建议检查</text>
+  <text x="120" y="1075" font-size="12.5" fill="#6b7280">例：不简单当胃肠炎——警惕噬血综合征，建议血液科尽快完善检查</text>
+  <text x="120" y="1094" font-size="12" fill="#374151">面向非医学背景读者，医学术语全部通俗化</text>
+
+  <path d="M 384,1104 L 384,1146" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- S4 -->
+  <rect x="104" y="1146" width="560" height="112" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="104" y="1146" width="4" height="112" rx="2" fill="#2563eb"/>
+  <text x="120" y="1170" font-size="14" font-weight="600" fill="#111827">Stage 4 · 专家核验状态机（双盲审核锁定）</text>
+  <text x="120" y="1194" font-size="12.5" fill="#374151">状态机：draft → reviewed → adjudicated → locked；盲审导出接口（CSV 含双评审人列 + JSON）</text>
+  <text x="120" y="1213" font-size="12.5" fill="#374151">触发任一红线立即淘汰：原病例不可溯源 / 口语输入缺失决定性体征</text>
+  <text x="120" y="1232" font-size="12.5" fill="#374151">通俗回答超出原病例依据范围同样淘汰</text>
+
+  <!-- QC 红线框 -->
+  <rect x="104" y="1278" width="560" height="96" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="120" y="1302" font-size="13.5" font-weight="700" fill="#dc2626">五维自动 QC 闸门（每项 2 分，共 10 分）</text>
+  <text x="120" y="1324" font-size="12" fill="#7f1d1d">输入侧：口语感 / 术语掩蔽 / 事实充分性 / 方向保真 / 自然度</text>
+  <text x="120" y="1343" font-size="12" fill="#7f1d1d">输出侧：结论保真 / 依据完整 / 术语通俗 / 表达自然 / 就医可操作</text>
+  <text x="120" y="1362" font-size="12" font-weight="600" fill="#dc2626">总分 &lt;8/10 强制重写（≤3 次）；事实充分性或方向保真为 0 直接淘汰</text>
+
+  <path d="M 384,1400 L 384,1446" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- A5 数据产物 -->
+  <rect x="88" y="1446" width="592" height="120" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="88" y="1446" width="4" height="120" rx="2" fill="#2563eb"/>
+  <circle cx="114" cy="1472" r="11" fill="#dbeafe"/>
+  <text x="114" y="1476" font-size="12" font-weight="700" text-anchor="middle" fill="#1d4ed8">5</text>
+  <text x="134" y="1477" font-size="15" font-weight="600" fill="#111827">数据产物 → 注入在线管线</text>
+  <text x="106" y="1502" font-size="12.5" fill="#374151">1339 条口语化问答对（红旗样本 27.9%）；QC 均分：输入侧 9.92 / 输出侧 9.75</text>
+  <text x="106" y="1522" font-size="12.5" fill="#374151">分层 5 折交叉验证切分（seed=42，六类症候群每折均有分布）</text>
+  <text x="106" y="1542" font-size="12" font-weight="600" fill="#1d4ed8">Stage 1 混合召回索引：447,089 个 n-gram 词条（构建 25.8s）</text>
+
+  <!-- ======== 泳道 B：在线导诊推理 ======== -->
+  <rect x="792" y="104" width="656" height="1424" rx="12" fill="#fcfffc" stroke="#86efac" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <path d="M 792,116 A 12,12 0 0 1 804,104 L 1436,104 A 12,12 0 0 1 1448,116 L 1448,148 L 792,148 Z" fill="#f0fdf4"/>
+  <text x="814" y="133" font-size="16" font-weight="700" fill="#15803d">在线 · 导诊推理管线</text>
+  <text x="1428" y="132" font-size="11" text-anchor="end" fill="#4ade80">四大模块 01→04（报告 §3 / §5）</text>
+
+  <!-- B1 患者查询（平行四边形 I/O） -->
+  <path d="M 850,190 L 1412,190 L 1382,330 L 820,330 Z" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="1116" y="222" font-size="15" font-weight="600" text-anchor="middle" fill="#111827">患者口语化查询 q</text>
+  <text x="1116" y="250" font-size="12.5" text-anchor="middle" fill="#6b7280">例：“我前天吃冰葡萄后高烧40度、肚子胀还吐了两天，</text>
+  <text x="1116" y="270" font-size="12.5" text-anchor="middle" fill="#6b7280">以前有成人Still病一直吃泼尼松，今天气短、腋下有点肿……可能是什么情况？”</text>
+  <text x="1116" y="298" font-size="12" text-anchor="middle" fill="#374151">口语化、带表面诱因误导、夹杂既往史与红旗征线索</text>
+
+  <path d="M 1116,330 L 1116,378" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- B2 检索+精排 -->
+  <rect x="820" y="378" width="592" height="150" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="820" y="378" width="4" height="150" rx="2" fill="#16a34a"/>
+  <rect x="836" y="392" width="30" height="20" rx="5" fill="#dcfce7"/>
+  <text x="851" y="406" font-size="12" font-weight="700" text-anchor="middle" fill="#15803d">01</text>
+  <text x="876" y="407" font-size="15" font-weight="600" fill="#111827">两阶段混合检索 + Jev Pointwise 精排</text>
+  <text x="838" y="432" font-size="12.5" fill="#374151">粗召回：BM25 + TF-IDF 字符 n-gram 等权混合 → Top-50 候选病例</text>
+  <text x="838" y="452" font-size="12.5" fill="#6b7280">例：召回 1673770（真相关疑难病例）+“普通胃炎”（表面相似干扰项）</text>
+  <text x="838" y="472" font-size="12.5" fill="#374151">精排：Jev 判别器对每个 (q, dᵢ) 输出连续相关性得分 ∈[0,1] → Top-10</text>
+  <text x="838" y="492" font-size="12.5" fill="#374151">作用：区分真相关疑难病例与表面相似干扰项；混合召回基线 Recall@50 = 0.955</text>
+
+  <path d="M 1116,528 L 1116,576" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- B3 要素生成 -->
+  <rect x="820" y="576" width="592" height="120" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="820" y="576" width="4" height="120" rx="2" fill="#16a34a"/>
+  <rect x="836" y="590" width="30" height="20" rx="5" fill="#dcfce7"/>
+  <text x="851" y="604" font-size="12" font-weight="700" text-anchor="middle" fill="#15803d">02</text>
+  <text x="876" y="605" font-size="15" font-weight="600" fill="#111827">临床鉴别要素生成（复用离线命题库）</text>
+  <text x="838" y="630" font-size="12.5" fill="#374151">对每个 Top-10 病例取原子命题集合 F = {f₁, …, f_M}（M ≤ 100）</text>
+  <text x="838" y="650" font-size="12.5" fill="#6b7280">例 f₁ 发热伴呕吐等消化道症状 · f₂ AOSD 服激素史 · f₃ 低氧红旗征</text>
+  <text x="838" y="670" font-size="12.5" fill="#6b7280">例 f₄ 双侧腋窝多发肿大淋巴结或躯干散在红疹 · f₅ 抗感染治疗后体温仍反复</text>
+
+  <path d="M 1116,696 L 1116,744" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- B4 Jev 双问题核验 -->
+  <rect x="820" y="744" width="592" height="200" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="820" y="744" width="4" height="200" rx="2" fill="#16a34a"/>
+  <rect x="836" y="758" width="30" height="20" rx="5" fill="#dcfce7"/>
+  <text x="851" y="772" font-size="12" font-weight="700" text-anchor="middle" fill="#15803d">03</text>
+  <text x="876" y="773" font-size="15" font-weight="600" fill="#111827">Jev 双问题事实核验（阈值 τ_f = 0.7 三态判定）</text>
+  <text x="838" y="798" font-size="12.5" fill="#374151">双问题并行独立判定：Mention p_men（是否提及）/ Support p_sup（是否确认存在）</text>
+  <text x="838" y="822" font-size="12.5" fill="#374151"><tspan font-weight="700" fill="#16a34a">supported</tspan>（p_sup ≥ 0.7）：例“糖尿病13年”口语泛指表述 p_sup = 0.97 → 确认事实</text>
+  <text x="838" y="846" font-size="12.5" fill="#374151"><tspan font-weight="700" fill="#ea580c">gap</tspan>（p_men ≥ 0.7 且 p_sup &lt; 0.7）：例“气短”提及但无依据 → 转交互追问</text>
+  <text x="838" y="870" font-size="12.5" fill="#374151"><tspan font-weight="700" fill="#dc2626">absent</tspan>（p_men &lt; 0.7）：例“皮疹”从未提及 → 硬截断丢弃，严禁脑补</text>
+  <text x="838" y="898" font-size="12.5" font-weight="600" fill="#111827">作用：把患者未陈述的症状挡在生成器之外，直接阻断症状 / 诊断幻觉</text>
+  <text x="838" y="920" font-size="12" fill="#6b7280">要素级双问题 v2：以命题核心短语提问，配合确定性口语归一化词表（9 类隐喻映射）</text>
+
+  <path d="M 1116,944 L 1116,992" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- B5 交互追问 -->
+  <rect x="820" y="992" width="592" height="110" rx="8" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.5"/>
+  <text x="838" y="1018" font-size="14" font-weight="600" fill="#111827">交互式追问（医疗导诊专属扩展）</text>
+  <text x="838" y="1042" font-size="12.5" fill="#374151">gap / absent 中的高鉴别权重要素 → 前端多轮追问按钮（follow_up_chip）</text>
+  <text x="838" y="1061" font-size="12.5" fill="#6b7280">例：“您活动后气短会加重吗？数过静息时的脉搏吗？”</text>
+  <text x="838" y="1080" font-size="12" fill="#7c3aed">用户补充陈述后返回上一步重新核验，直至事实边界清晰</text>
+
+  <path d="M 1116,1102 L 1116,1150" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- 追问反馈回路（紫） -->
+  <path d="M 1412,1047 L 1436,1047 L 1436,850 L 1412,850" fill="none" stroke="#9333ea" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+  <text x="1434" y="950" font-size="11" font-weight="600" text-anchor="middle" fill="#9333ea" transform="rotate(-90 1434 950)">补充陈述 → 重新核验</text>
+
+  <!-- B6 防幻觉生成 -->
+  <rect x="820" y="1150" width="592" height="200" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="820" y="1150" width="4" height="200" rx="2" fill="#16a34a"/>
+  <rect x="836" y="1164" width="30" height="20" rx="5" fill="#dcfce7"/>
+  <text x="851" y="1178" font-size="12" font-weight="700" text-anchor="middle" fill="#15803d">04</text>
+  <text x="876" y="1179" font-size="15" font-weight="600" fill="#111827">防幻觉导诊生成（五步结构化输出）</text>
+  <text x="838" y="1204" font-size="12.5" fill="#374151">生成器输入仅限：查询 q + Top-10 病例 + supported/gap 事实（absent 已硬截断）</text>
+  <text x="838" y="1226" font-size="12.5" fill="#374151">① 分诊结论与就医紧急度　② 破除表面诱因误导（吃冰葡萄呕吐 ≠ 单纯胃肠炎）</text>
+  <text x="838" y="1248" font-size="12.5" fill="#374151">③ supported 事实映射至 CMCR 鉴别路径　④ 红旗边界与结论翻转条件（gap 要素）</text>
+  <text x="838" y="1270" font-size="12.5" fill="#374151">⑤ 下一步检查与挂号科室建议</text>
+  <text x="838" y="1296" font-size="12.5" fill="#6b7280">例：警惕淋巴瘤合并噬血综合征——建议急诊评估 + 血液科优先会诊</text>
+  <text x="838" y="1318" font-size="12" fill="#6b7280">所有结论仅建立在已核验事实之上，无凭据不出诊断</text>
+
+  <path d="M 1116,1350 L 1116,1398" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- B7 输出（平行四边形 I/O） -->
+  <path d="M 850,1398 L 1412,1398 L 1382,1470 L 820,1470 Z" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="1116" y="1428" font-size="14.5" font-weight="600" text-anchor="middle" fill="#111827">输出：通俗导诊建议</text>
+  <text x="1116" y="1452" font-size="12.5" text-anchor="middle" fill="#374151">推荐科室 · 就医紧急度 · 建议检查 · 红旗警示边界</text>
+
+  <!-- ======== 跨泳道注入（绿虚线） ======== -->
+  <path d="M 680,586 L 744,586 L 744,636 L 820,636" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-green)"/>
+  <rect x="694" y="601" width="112" height="18" fill="#ffffff" opacity="0.95"/>
+  <text x="750" y="614" font-size="12" text-anchor="middle" fill="#15803d">命题库注入</text>
+
+  <path d="M 680,1506 L 760,1506 L 760,453 L 820,453" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-green)"/>
+  <text x="762" y="980" font-size="11.5" font-weight="600" text-anchor="middle" fill="#15803d" transform="rotate(-90 762 980)">召回索引 + 5 折评测协议注入</text>
+
+  <!-- ======== QC 强制重写回路（红） ======== -->
+  <path d="M 104,1326 L 94,1326 L 94,907 L 104,907" fill="none" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+
+  <!-- ======== 图例 ======== -->
+  <rect x="60" y="1640" width="1388" height="56" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="80" y="1674" font-size="12" font-weight="700" fill="#111827">图例</text>
+  <line x1="130" y1="1668" x2="164" y2="1668" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="172" y="1672" font-size="12" fill="#374151">主流程</text>
+  <line x1="290" y1="1668" x2="324" y2="1668" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-green)"/>
+  <text x="332" y="1672" font-size="12" fill="#374151">离线产物注入在线管线</text>
+  <line x1="580" y1="1668" x2="614" y2="1668" stroke="#9333ea" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+  <text x="622" y="1672" font-size="12" fill="#374151">交互追问反馈回路</text>
+  <line x1="830" y1="1668" x2="864" y2="1668" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <text x="872" y="1672" font-size="12" fill="#374151">QC 强制重写 / 红线淘汰</text>
+  <text x="1110" y="1672" font-size="11.5" fill="#6b7280">平行四边形 = 输入 / 输出 · 圆角矩形 = 处理步骤</text>
+
+  <text x="750" y="1730" font-size="11.5" text-anchor="middle" fill="#9ca3af">数据规模与协议口径取自 data_pipeline_technical_report.md（2026-10-29 实盘统计）· 示例主线：CMCR 病例 1673770 “冰葡萄”患者贯穿全图</text>
+</svg>
