@@ -1,31 +1,49 @@
-# MedIR-CMCR 核心工程开发包 (Master Development Suite)
+# FirstCare (MedIR-CMCR)：低幻觉普惠医疗导诊演示系统
 
-基于中国临床案例成果数据库 (CMCR) 与 Jev 双步事实核验（Mention & Support）的低幻觉普惠医疗导诊系统。
-面向 **ECIR 2027 Call for Demos** 投稿开发。
+基于中国临床案例成果数据库（CMCR）与 Jev 双步事实核验（Mention & Support）的接地（grounded）医疗分诊系统。
+面向 **ECIR 2027 Demo Track** 投稿开发。
 
-## 📦 包含的核心文件清单
+## 系统组成
 
-1. **`project_plan_medir_cmcr.md`**：开发 Agent 主规划规范书（定义症候群覆盖范围、Task 0 至 Task 8、Pydantic 数据契约、Jev 公式 1–3、System Prompts 及一票否决 Veto% + R1–R6 100 分制评测体系）。
-2. **`cmcr_case_1673770_structured.json`**：标杆结构化病例（cmaid/1673770，T细胞淋巴瘤合并嗜血综合征HLH）及 5 条离线查询无关原子临床命题 $\mathcal{F}$。
-3. **`app.py`**：（**已废弃**——早期内联演示版，未接真实管线；前端将按 `src/` 真实管线全新实现，见《可视化平台设计说明.md》）。
-4. **`evaluate_fever_agent.py`**：基准评测与消融实验脚本（已验证 Pointwise Jev Reranking Top-1 准确率 100.0%，Two-Question Jev Fact Role 判定准确率 100.0%）。
-5. **`cmcr_native_extractor.py`**：CMCR 原生 11 章节抽取与生命体征数值解析器。
-6. **`project_introduction.md`**：项目全景介绍。
-7. **`medical_collaborator_guide.md`**：医学合作同学分工指南与双盲评测准则。
-8. **`可视化平台设计说明.md`**：前端交接文档（目录结构、后端调用链、数据结构、设计要求、缓存策略）。
+| 模块 | 位置 | 说明 |
+|---|---|---|
+| 数据管线 | `src/data_pipeline/` | CMCR 原生 11 章节抽取（`jats_parser.py`、`cmcr_native_extractor.py`）、口语化问答构造（`colloquial_constructor.py`）、原子命题生成（`proposition_generator.py`） |
+| 混合检索 + 精排 | `src/retrieval/` | 字符级 1/2/3-gram 的 BM25 + TF-IDF 等权混合召回 Top-50，Jev 判别式逐点重排返回 Top-k（k=10） |
+| 双问题事实核验 | `src/verification/` | 对每条候选命题执行 Mention（p_men）与 Support（p_sup）检查，τ_f=0.7 三态划分 supported / gap / absent |
+| 接地生成 | `src/generation/` | absent 命题物理剔除并导出为追问 chips；红旗命题 supported 即触发"立即急诊"升级硬闸门；五步式结构化输出（模板 + LLM 双模式） |
+| 浏览器 Demo | `medir_triage_ui_real.html` | **单文件、无需服务端**：内嵌 1,341 例语料与 36,715 条命题，浏览器端逐行移植真实管线 |
+| 前后端对拍 | `compare_backend_frontend.py`、`smoke_test_pipeline.py` | 浏览器端 JS 管线与 Python 后端多场景逐位一致（top-2 / 三态计数 / 紧急度 / 引用 / chips 全 PASS） |
+| 端到端评测 | `experiments/evaluate_pipeline.py` | 30 条分层抽样端到端评分，LaTeX 结果表见 `out/table2_pipeline_eval.tex`（caption 含 LLM-judge 自我偏好声明） |
 
-## 🚀 快速启动指南
+## 数据规模（实测）
 
-### 1. 运行基准评测脚本 (100% 准确率验证)
+1,543 例 CMCR 源病例 → 1,341 例结构化病例 → 43,271 条原子命题（红旗占 23.0%，9,968 条）→ 1,339 条口语化问答。
+
+> ⚠️ 1,339 条口语问答当前均为 `draft` 状态，专家双盲审核尚未执行，**不得表述为 expert-verified**。
+
+## 快速开始
+
 ```bash
-python3 evaluate_fever_agent.py
+# 1. 前后端对拍（验证浏览器端管线与 Python 后端一致）
+python compare_backend_frontend.py
+
+# 2. 管线冒烟测试
+python smoke_test_pipeline.py
+
+# 3. 端到端评测（需配置 LLM API，见 .env.example）
+python experiments/evaluate_pipeline.py
 ```
 
-### 2. 启动 Streamlit 交互演示系统
-```bash
-pip install -r requirements.txt
-streamlit run app.py
-```
+浏览器 Demo 直接用浏览器打开 `medir_triage_ui_real.html` 即可，无需安装依赖。
 
-### 3. 交给开发 Agent (Cursor / Claude Code) 自主开工
-直接将 `project_plan_medir_cmcr.md` 中的【第六章：一键启动主提示词】复制给开发 Agent 即可开始全自动重构与扩展。
+## 遗留文件说明（勿作为评测依据）
+
+- **`app.py`**：早期内联演示版（已废弃，未接真实管线），仅供遗留冒烟测试使用。
+- **`evaluate_fever_agent.py`**：针对上述废弃版本的遗留冒烟测试，仅 3 条手工构造用例，
+  输出仅用于开发期 sanity check，**样本量极小，不得作为基准结果引用**。
+- **`project_plan_medir_cmcr.md`**：早期规划文档，其中的 Gate 指标为当时设定的验收目标，**非实测结果**。
+
+## 引用与限制
+
+端到端评测样本量仅 30，LLM 裁判与生成器共用模型池存在自我偏好风险，引用评测数字时
+须保留 `out/table2_pipeline_eval.tex` caption 中的限定声明，不得表述为 prove / SOTA 类结论。

@@ -367,6 +367,8 @@ class JevVerifiedFact(BaseModel):
 
 开发 Agent 每完成一个阶段，必须运行以下终端命令并确保 100% 通过：
 
+> **注（2026-11-01）**：本节为**立项时的验收目标设定，非实测结果**。Gate 2 第 3 条所引用的消融设置（Zero-shot / Cases-only / Full Pipeline 对比）系占位字面量，已从 `evaluate_fever_agent.py` 移除；真实管线的端到端评测见 `experiments/evaluate_pipeline.py` 与 `out/table2_pipeline_eval.tex`。
+
 | 验收阶段 | 自动化测试命令 | 必须达成的硬性验收指标 (Pass Criteria) |
 | :--- | :--- | :--- |
 | **Gate 1: 原生抽取校验** | `python3 cmcr_native_extractor.py` | 成功解析病例池内**全部病例**（发热 ≥2、腹痛 ≥3、红旗 ≥4）的 11 个原生小节；标杆病例 1673770 准确提取 `temperature_c=39.1`, `spo2_percent=92.0`；`case_pool_index.json` 分层登记完整，且零预设科室硬编码 |

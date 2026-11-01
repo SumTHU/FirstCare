@@ -1,3 +1,13 @@
+"""遗留冒烟测试（legacy smoke test）。
+
+注意：
+1. 本脚本针对的是早期内联演示版 `app.py`（已废弃，未接真实管线），
+   不代表 `src/` 真实管线的评测结果；
+2. 测试集仅为 3 条手工构造用例（基于标杆病例 cmaid/1673770），
+   输出仅用于开发期 sanity check，样本量极小，不得作为基准结果引用；
+3. 真实管线的端到端评测见 `experiments/evaluate_pipeline.py`
+   （30 条分层抽样，结果见 `out/table2_pipeline_eval.tex`）。
+"""
 import json
 import os
 from typing import Any, Dict, List
@@ -68,62 +78,18 @@ def run_ablation_experiment() -> Dict[str, Any]:
     jev_role_acc = round((correct_role_assignments / max(total_props_checked, 1)) * 100.0, 1)
     top1_rerank_acc = round((correct_top1_rerank / len(COLLOQUIAL_TEST_SET)) * 100.0, 1)
 
-    ablation_table = [
-        {
-            "Setting": "Zero-shot LLM (Direct Prompting)",
-            "Mean (100)": 63.80,
-            "Veto (%)": 23.3,
-            "R1 (9)": 8.40,
-            "R2 (40)": 26.50,
-            "R3 (17)": 13.80,
-            "R4 (18)": 11.90,
-            "R5 (8)": 7.60,
-            "R6 (8)": 7.40,
-        },
-        {
-            "Setting": "Cases-only (CMCR RAG without Jev Verification)",
-            "Mean (100)": 69.45,
-            "Veto (%)": 13.3,
-            "R1 (9)": 8.75,
-            "R2 (40)": 30.20,
-            "R3 (17)": 14.90,
-            "R4 (18)": 12.60,
-            "R5 (8)": 7.80,
-            "R6 (8)": 7.70,
-        },
-        {
-            "Setting": "Full Pipeline (CMCR + Jev Rerank & Two-Question Fact Verification)",
-            "Mean (100)": 79.40,
-            "Veto (%)": 3.3,
-            "R1 (9)": 8.90,
-            "R2 (40)": 33.80,
-            "R3 (17)": 16.20,
-            "R4 (18)": 16.50,
-            "R5 (8)": 7.90,
-            "R6 (8)": 7.85,
-        },
-    ]
-
     return {
         "top1_jev_rerank_accuracy": top1_rerank_acc,
         "jev_fact_role_accuracy": jev_role_acc,
-        "ablation_table": ablation_table,
     }
 
 
 if __name__ == "__main__":
     res = run_ablation_experiment()
     print("=" * 78)
-    print("MedIR-CMCR Jev Fact Verification & Ablation Benchmark")
+    print("Legacy smoke test (deprecated app.py, 3 hand-crafted toy cases)")
+    print("NOT a benchmark -- for development sanity check only.")
     print("=" * 78)
     print(f"Pointwise Jev Reranking Top-1 Accuracy : {res['top1_jev_rerank_accuracy']}%")
     print(f"Two-Question Jev Fact Role Accuracy    : {res['jev_fact_role_accuracy']}% (supported / gap / absent)")
-    print("-" * 78)
-    print(f"{'Setting':<55} | {'Mean':>5} | {'Veto%':>5} | {'R2(40)':>6} | {'R4(18)':>6}")
-    print("-" * 78)
-    for row in res["ablation_table"]:
-        print(
-            f"{row['Setting']:<55} | {row['Mean (100)']:>5.2f} | {row['Veto (%)']:>5.1f} | "
-            f"{row['R2 (40)']:>6.2f} | {row['R4 (18)']:>6.2f}"
-        )
     print("=" * 78)
