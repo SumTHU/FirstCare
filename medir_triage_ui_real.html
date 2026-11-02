@@ -505,18 +505,19 @@ body.lang-en .en-sub,body.lang-en .prop-en,body.lang-en .en-answer{display:none}
     </div>
 
     <div class="cfg-sec">
-      <h4>☁️ 并行智算云（OpenAI 兼容）<span class="meta-tag">Stage-2 LLM 评分 + Task-6 生成</span></h4>
-      <div class="cfg-row"><label>API Key</label><input type="password" id="cfg_ptKey" placeholder="PARATERA_API_KEY" autocomplete="off"></div>
+      <h4>🤖 通用 LLM（OpenAI 兼容接口）<span class="meta-tag">Stage-2 LLM 评分 + Task-6 生成</span></h4>
+      <div class="cfg-row"><label>API Key</label><input type="password" id="cfg_ptKey" placeholder="sk-..." autocomplete="off"></div>
       <div class="cfg-row"><label>Base URL</label><input type="text" id="cfg_ptUrl" placeholder="https://llmapi.paratera.com/v1"></div>
       <div class="cfg-row"><label>模型</label><input type="text" id="cfg_ptModel" placeholder="DeepSeek-V4.1-Flash-1017"></div>
       <label class="cfg-row" style="cursor:pointer"><input type="checkbox" id="cfg_useLLMGen" style="width:auto">
         <span style="font-size:12.5px">启用 Task-6 LLM 生成（对应后端 --llm；关闭则用五步受控演绎模板）</span></label>
+      <p class="cfg-hint">兼容任意 OpenAI /chat/completions 协议的服务（DeepSeek、OpenAI、智谱、Qwen、本地 vLLM / Ollama 等均可）；Base URL 填到 /v1 一级，模型名以服务方文档为准。留空占位符时使用内置默认端点。</p>
     </div>
 
     <div class="cfg-foot">
       <button class="cfg-btn primary" id="cfgSave" type="button">保存并关闭</button>
       <button class="cfg-btn" id="cfgTestJev" type="button">测试 Jev 连通</button>
-      <button class="cfg-btn" id="cfgTestPt" type="button">测试智算云连通</button>
+      <button class="cfg-btn" id="cfgTestPt" type="button">测试 LLM 连通</button>
       <button class="cfg-btn" id="cfgClear" type="button">清除全部</button>
     </div>
     <div class="cfg-status" id="cfgStatus"></div>
@@ -1074,7 +1075,7 @@ function buildTemplateAnswer(query, topCases, supportedFacts, gapFacts, chips, c
    模块 5 —— 神经模式：API Key 配置与真实模型调用
    对齐 src/config.py、src/verification/jev_client.py（/v1/systemone
    HTTP 直连）、src/retrieval/stage2_jev_reranker.py（Jev Noul 优先 /
-   智算云 LLM 评分）、src/generation/deductive_generator.py（Task 6
+   通用 LLM 评分）、src/generation/deductive_generator.py（Task 6
    LLM 五步生成）。未配置 Key 时全部回落离线确定性档位。
 ================================================================ */
 const LS = (typeof localStorage !== "undefined") ? localStorage
@@ -1131,7 +1132,7 @@ async function jevNoulBatch(state, noulQuestions){
   return Object.keys(out).length ? out : null;
 }
 
-/* —— 并行智算云（OpenAI 兼容 /chat/completions） —— */
+/* —— 通用 LLM（OpenAI 兼容 /chat/completions） —— */
 async function ptChat(messages, temperature, model, timeoutMs){
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), timeoutMs || 180000);
@@ -1160,7 +1161,7 @@ async function pooledMap(items, worker, n){
 }
 
 /* —— Stage-2 神经精排：Jev Noul 优先（对齐 _score_via_jev）；
-      未配置 Jev Key 时走智算云 LLM 评分（对齐 _score_via_api） —— */
+      未配置 Jev Key 时走通用 LLM 评分（对齐 _score_via_api） —— */
 const JEV_SYSTEM_PROMPT = `你是医疗导诊检索的相关性判别专家。给定一位患者向 AI 健康助手发出的口语化咨询，以及一份候选临床病例的摘要，请判断：该病例的临床鉴别要件（症状组合、关键体征、病程特点、既往史、鉴别诊断逻辑）是否直接且特异地支撑患者的核心症候群与风险特征——而不仅仅是表面症状相似。
 评分标准（输出 0-1 连续分数，保留两位小数）：
 - 0.90-1.00：鉴别要件几乎完全吻合，该病例就是患者情形的强对应（如同一疾病方向且关键特征一致）；
@@ -1204,7 +1205,7 @@ async function stage2RerankNeural(q, candidates){
   const probe = await stage2ScorePoint(q, docs[0].doc);
   if (!probe){
     return {list: stage2Rerank(q, candidates), mode: "lexical",
-            note: (jevAvailable() ? "Jev" : "智算云 LLM") + " 调用失败，已回落词面覆盖率兜底"};
+            note: (jevAvailable() ? "Jev" : "LLM") + " 调用失败，已回落词面覆盖率兜底"};
   }
   const results = await pooledMap(docs, async (d, i) => {
     if (i === 0) return [d, probe];
@@ -1356,11 +1357,11 @@ async function generateAnswer(q, topCases, gated, allFacts){
     return ans;
   }
   if (!ptAvailable()){
-    ans.fallback_reason = "未配置 PARATERA_API_KEY/PARATERA_DECOMPOSE_MODEL";
+    ans.fallback_reason = "已启用 LLM 生成但未配置通用 LLM Key（OpenAI 兼容），已回落模板";
     return ans;
   }
-  const candidates = [CFG.ptModel, "DeepSeek-V4.1-Flash-1017", "DeepSeek-V4.1-Flash"]
-    .filter((v, i, a) => v && a.indexOf(v) === i);
+  /* 仅用用户配置的模型（重试 2 次）：通用端点上硬编码其它模型名只会白耗请求 */
+  const candidates = [CFG.ptModel].filter(Boolean);
   let raw = "", lastErr = "";
   for (const model of candidates){
     for (let attempt = 0; attempt < 2; attempt++){
@@ -1584,7 +1585,7 @@ function renderAll(res){
   /* —— 01 检索精排（Stage-1 混合召回 → Stage-2 Pointwise 精排，真实分数） —— */
   const rankLbl = lang==="zh" ? "Stage-2 判分理由" : "Stage-2 rationale";
   const s2Tag = res.s2mode === "jev" ? (lang==="zh" ? "Jev Noul 神经评分" : "Jev Noul neural scoring")
-              : res.s2mode === "llm" ? (lang==="zh" ? "智算云 LLM 评分" : "Paratera LLM scoring")
+              : res.s2mode === "llm" ? (lang==="zh" ? "LLM 评分" : "LLM scoring")
               : (lang==="zh" ? "词面覆盖率兜底（离线）" : "Lexical bigram coverage (offline)");
   const reasonOf = r => r.reason_zh ||
     (lang==="zh" ? "词面覆盖率兜底打分" : "Lexical bigram coverage (offline Stage-2 fallback)");
@@ -1734,7 +1735,7 @@ function ensureIndexBuilt(){
 function pushLoading(){
   const parts = [];
   if (jevAvailable() || ptAvailable()){
-    parts.push("Stage-2 " + (jevAvailable() ? "Jev Noul" : "智算云 LLM") +
+    parts.push("Stage-2 " + (jevAvailable() ? "Jev Noul" : "LLM") +
                " 神经精排（Top-" + STAGE1_K + " 候选逐例真实判别）");
     if (jevAvailable()) parts.push("Task-5 神经双问题核验（每条命题一次 Jev 校准概率）");
     if (ptAvailable() && CFG.useLLMGen) parts.push("Task-6 LLM 受控演绎生成");
@@ -1888,14 +1889,14 @@ $("#cfgTestPt").addEventListener("click", async () => {
   const bak = Object.assign({}, CFG);
   CFG_FIELDS.forEach(id => { CFG[id] = $("#cfg_" + id).value.trim(); });
   const st = $("#cfgStatus");
-  st.textContent = lang === "zh" ? "智算云连通性测试中…" : "Testing Paratera connectivity…";
+  st.textContent = lang === "zh" ? "LLM 连通性测试中…" : "Testing LLM connectivity…";
   try {
     const out = await ptChat([{role: "user", content: "请只回复两个字：正常"}],
                              0, $("#cfg_ptModel").value.trim() || CFG.ptModel, 60000);
     st.textContent = out
-      ? (lang === "zh" ? "✅ 智算云连通正常，模型回复：" + out.trim().slice(0, 40)
-                       : "✅ Paratera reachable: " + out.trim().slice(0, 40))
-      : (lang === "zh" ? "❌ 智算云返回为空。" : "❌ Empty response.");
+      ? (lang === "zh" ? "✅ LLM 连通正常，模型回复：" + out.trim().slice(0, 40)
+                       : "✅ LLM reachable: " + out.trim().slice(0, 40))
+      : (lang === "zh" ? "❌ LLM 返回为空。" : "❌ Empty response.");
   } catch (e) {
     st.textContent = "❌ " + String(e && e.message || e) +
       (lang === "zh" ? "（若控制台出现 CORS 报错，请将 Base URL 改指本地代理）" : "");

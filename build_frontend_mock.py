@@ -22,6 +22,7 @@ TEMPLATE_PATH = ROOT / "frontend_mock_template.html"
 OUT_PATH = ROOT / "medir_triage_ui.html"
 
 PLACEHOLDER = "/*__CORPUS__*/null"
+PRESET_PLACEHOLDER = "/*__PRESET_API__*/null"
 
 
 def main() -> None:
@@ -33,13 +34,25 @@ def main() -> None:
     import json
     corpus_json = json.dumps({"cases": cases}, ensure_ascii=False, separators=(",", ":"))
 
+    # 真实 API 预跑结果（若存在则注入；不存在时前端回落离线确定性模式）
+    preset_slim_path = ROOT / "data" / "cache" / "demo_preset_slim.json"
+    if preset_slim_path.exists():
+        preset_json = preset_slim_path.read_text(encoding="utf-8").strip()
+    else:
+        preset_json = "null"
+
     template = TEMPLATE_PATH.read_text(encoding="utf-8")
     if PLACEHOLDER not in template:
         raise SystemExit("模板中未找到语料占位符")
     html = template.replace(PLACEHOLDER, corpus_json, 1)
+    if PRESET_PLACEHOLDER in html:
+        html = html.replace(PRESET_PLACEHOLDER, preset_json, 1)
+    else:
+        print("⚠️ 模板中未找到 PRESET_API 占位符，跳过真实 API 注入")
     OUT_PATH.write_text(html, encoding="utf-8")
     n_props = sum(len(c["ps"]) for c in cases)
     print(f"病例 {len(cases)} 例 | 嵌入命题 {n_props} 条 | "
+          f"真实 API 预跑注入: {'是' if preset_json != 'null' else '否'} | "
           f"输出 {OUT_PATH.name}（{OUT_PATH.stat().st_size / 1e6:.1f} MB）")
 
 

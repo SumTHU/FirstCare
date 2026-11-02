@@ -4,8 +4,12 @@ __pycache__/
 *.pyc
 .workbuddy/
 
-# 原始语料体积过大（约 2.7G），不入库；demo HTML 已内嵌全部语料
-data/
+# 原始语料体积过大（约 2.7G），不入库；demo HTML 已内嵌全部语料。
+# 例外：投稿演示视频成品随仓库发布。
+data/*
+!data/video/
+data/video/*
+!data/video/demo_final_subtitled.mp4
 out/cache/
 
 # 非项目产出的第三方文件

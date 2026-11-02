@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """神经链路协议测试：stub + 管线 JS + 本地 mock 服务（Jev /v1/systemone
-与智算云 /chat/completions），验证 Key 配置后的真实调用形状、解析与逐级回落。"""
+与通用 OpenAI 兼容 /chat/completions），验证 Key 配置后的真实调用形状、解析与逐级回落。"""
 import re
 import subprocess
 import sys

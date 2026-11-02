@@ -487,6 +487,10 @@ body.lang-en .en-sub,body.lang-en .prop-en,body.lang-en .en-answer{display:none}
    语料：data/structured_cases/ 全量结构化病例（由 build_frontend_mock.py 注入）
 ================================================================ */
 const CORPUS = /*__CORPUS__*/null;
+/* 真实 API 预跑结果（由 prewarm_demo_cache.py 生成、build_frontend_mock.py 注入）。
+   预设场景点击时，若命中此处缓存，则用真实 Jev 精排分数 / 真实 Jev p_men/p_sup
+   / 真实 LLM 五步生成覆盖离线确定性结果，并标注「真实 API 预计算」。 */
+const PRESET_API = /*__PRESET_API__*/null;
 
 /* ============ i18n 字典（静态 UI） ============ */
 const UI = {
@@ -1067,9 +1071,68 @@ function runPipeline(rawQuery){
   const answer = generateAnswer(q, topCases, gated, facts);
   const factsTop1 = facts.filter(f => f.src === (topCases[0] || {}).c);
   const res = {q, ranked, topCases, facts, factsTop1, gated, answer,
-               ms: Math.round(performance.now() - t0)};
+               ms: Math.round(performance.now() - t0), api: false};
+  /* 预设场景命中真实 API 预跑缓存 → 覆盖为真实结果（仅单轮原始查询） */
+  if (PRESET_API && PRESET_API[q]) applyApiPreset(q, res);
   pipeCache.set(q, res);
   return res;
+}
+
+/* 用真实 API 预跑结果覆盖离线确定性结果（Stage-2 精排分数 / Task-5 概率
+   / Task-6 五步生成），其余结构与离线管线一致，仅做数值与文本替换。 */
+function applyApiPreset(q, res){
+  const P = PRESET_API[q];
+  if (!P) return;
+  res.api = true;
+
+  /* Stage-2：真实 Jev Noul 精排分数与理由（完全采用真实 API 排名，丢弃离线兜底序） */
+  res.ranked = (P.ranked || []).map(r => {
+    const c = CORPUS.cases[IDX.byCmaid.get(r.cmaid)];
+    return {cmaid: r.cmaid, score: r.score,
+            reason_zh: r.reason || "Jev Noul 校准概率",
+            title: c ? c.t : r.cmaid};
+  });
+  res.ranked.sort((a,b) => b.score - a.score);
+  /* 若真实 API Top-1 与离线 Top-1 不同，用真实序重排 Top-k 病例 */
+  res.topCases = res.ranked.slice(0, TOPK_CASES)
+    .map(r => CORPUS.cases[IDX.byCmaid.get(r.cmaid)]).filter(Boolean);
+
+  /* Task-5：真实 Jev p_men/p_sup/role 覆盖（按 prop_id 对齐）。
+     先以真实 API Top-k 病例的命题集重建 facts，再逐命题覆盖概率。 */
+  const fmap = {};
+  for (const f of (P.facts || [])) fmap[f.prop_id] = f;
+  const qExp = expandColloquial(q);
+  const facts2 = [];
+  for (const c of res.topCases)
+    for (const prop of c.ps.slice(0, VERIFY_PROP_CAP)){
+      const ff = fmap[prop.id];
+      if (ff){
+        facts2.push({prop, p_men: ff.p_men, p_sup: ff.p_sup, role: ff.role,
+                     evidence: [], src: (prop.id.split("_")[1] || "")});
+      } else {
+        /* 真实 API 未覆盖的命题（Top-2 之外的个别），回落确定性档位 */
+        facts2.push(verifyDeterministic(qExp, prop));
+      }
+    }
+  res.facts = facts2;
+  res.factsTop1 = res.facts.filter(f => f.src === (res.topCases[0] || {}).c);
+
+  /* Task-6：真实 LLM 五步生成 + 元数据 */
+  const A = P.answer || {};
+  if (A.mode){
+    res.answer.mode = A.mode;
+    res.answer.urgency = A.urgency || res.answer.urgency;
+    res.answer.route = A.route || res.answer.route;
+    res.answer.red_flag = !!A.red_flag;
+    res.answer.cited = A.cited || res.answer.cited;
+    if (A.sections) res.answer.sections = A.sections;
+    if (A.en_summary !== undefined) res.answer.en_summary = A.en_summary;
+    if (A.veto2 !== undefined) res.answer.veto2 = A.veto2;
+  }
+
+  /* 依据真实核验结果重算硬闸门与追问 chips */
+  res.gated = filterFactsForGenerator(res.facts);
+  res.ms = res.ms;
 }
 
 /* ============ 会话状态（多轮语义与 app.py 一致：累积陈述重跑全管线） ============ */
@@ -1217,7 +1280,9 @@ function renderAll(res){
 
   /* —— 01 检索精排（Stage-1 混合召回 → Stage-2 Pointwise 精排，真实分数） —— */
   const rankLbl = lang==="zh" ? "Stage-2 判分理由" : "Stage-2 rationale";
-  const reasonTxt = lang==="zh" ? "词面覆盖率兜底打分" : "Lexical bigram coverage (offline Stage-2 fallback)";
+  const reasonTxt = res.api
+    ? (lang==="zh" ? "Jev Noul 校准概率（真实 API 预计算）" : "Jev Noul calibrated probability (real-API precomputed)")
+    : (lang==="zh" ? "词面覆盖率兜底打分" : "Lexical bigram coverage (offline Stage-2 fallback)");
   const chainLbl = lang==="zh"
     ? "Stage-1 混合召回 Top-" + STAGE1_K + " → 精排 Top-" + TOPK_CASES
     : "Stage-1 hybrid recall Top-" + STAGE1_K + " -> rerank Top-" + TOPK_CASES;
@@ -1230,7 +1295,7 @@ function renderAll(res){
         <span class="score num">${r.score.toFixed(2)}</span>
       </div>
       <div class="meter"><i style="width:${Math.min(100, r.score*100).toFixed(1)}%"></i></div>
-      <div class="reason">${rankLbl}：${esc(reasonTxt)} · ${chainLbl}</div>
+      <div class="reason">${rankLbl}：${esc(r.reason_zh || reasonTxt)} · ${chainLbl}</div>
     </div>`).join("") ||
     `<div class="empty-state">${lang==="zh"?"Stage-1 未能召回匹配病例，请补充症状描述。":"Stage-1 recalled no matching cases - add more symptom detail."}</div>`;
 
@@ -1251,8 +1316,13 @@ function renderAll(res){
     : `<div class="empty-state">${lang==="zh"?"无 Top-1 病例。":"No Top-1 case."}</div>`;
 
   /* —— 03 双问题核验（Top-1 病例逐命题三态判定，确定性规则档位） —— */
+  const verifyNote = res.api
+    ? (lang==="zh" ? "双问题 Jev 真实 API 模式（连续 p_men / p_sup 校准概率）"
+                   : "two-question Jev real-API mode (continuous p_men / p_sup calibrated probabilities)")
+    : (lang==="zh" ? "双问题 Jev 确定性规则模式（四档概率）"
+                   : "two-question Jev deterministic mode (fixed probability tiers)");
   $("#panelVerify").innerHTML = res.factsTop1.length
-    ? `<div class="tau-note">Top-1 cmaid/${esc(top1.c)} · τ_f=<span class="num">${TAU_F.toFixed(2)}</span> · ${lang==="zh"?"双问题 Jev 确定性规则模式（四档概率）":"two-question Jev deterministic mode (fixed probability tiers)"}</div>` +
+    ? `<div class="tau-note">Top-1 cmaid/${esc(top1.c)} · τ_f=<span class="num">${TAU_F.toFixed(2)}</span> · ${verifyNote}</div>` +
       res.factsTop1.map(f => `
       <div class="prop-card ${f.role}">
         <div class="prop-top">
@@ -1262,6 +1332,7 @@ function renderAll(res){
           <span class="role-badge ${f.role}">${roleLabel[f.role]}</span>
         </div>
         <div class="prop-en en-sub">${esc(f.prop.en || "")}</div>
+        <div class="reason num" style="font-size:11px;color:var(--ink-2)">p_men=${f.p_men.toFixed(2)} · p_sup=${f.p_sup.toFixed(2)}</div>
       </div>`).join("")
     : `<div class="empty-state">${lang==="zh"?"无进入核验的命题。":"No propositions verified."}</div>`;
 
@@ -1295,7 +1366,7 @@ function renderAll(res){
       <span class="meta-tag">${metaMode} <span class="num">${a.mode}</span></span>
       <span class="meta-tag">${metaFlag} <span class="num">${a.red_flag ? yes : no}</span></span>
       <span class="meta-tag">${metaVeto} <span class="num">${a.veto2 ? done : no}</span></span>
-      <span class="meta-tag scrub">${metaS2} <span class="num">${lang==="zh"?"词面覆盖率兜底":"lexical fallback"}</span></span>
+      <span class="meta-tag scrub">${metaS2} <span class="num">${res.api ? (lang==="zh"?"真实 API · Jev":"real API · Jev") : (lang==="zh"?"词面覆盖率兜底":"lexical fallback")}</span></span>
     </div>
     <details class="urg-banner ${a.red_flag ? "alarm" : "calm"}" role="alert">
       <summary>

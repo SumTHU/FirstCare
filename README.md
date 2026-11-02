@@ -36,6 +36,11 @@ python experiments/evaluate_pipeline.py
 
 浏览器 Demo 直接用浏览器打开 `medir_triage_ui_real.html` 即可，无需安装依赖。
 
+## 演示视频
+
+`data/video/demo_final_subtitled.mp4`（约 6MB，含字幕）：完整演示口语查询 → 混合检索 → 双问题事实核验 → 多轮澄清 → 红旗升级 → 接地生成的全流程。
+录制与合成脚本：`auto_record.py`（自动录制）、`make_narration.py`（旁白 TTS）、`compose_video.py`（拼接）、`burn_subtitles.py`（烧录字幕），方案详见 `demo视频录制方案.md`。
+
 ## 遗留文件说明（勿作为评测依据）
 
 - **`app.py`**：早期内联演示版（已废弃，未接真实管线），仅供遗留冒烟测试使用。

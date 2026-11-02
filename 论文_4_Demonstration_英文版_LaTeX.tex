@@ -1,0 +1,106 @@
+% ============================================================
+% Section 4: Demonstration
+% Overleaf 直贴版（Springer LNCS llncs 模板）
+% 依赖：graphicx（LNCS 模板已含）、\url{}
+% 图：out/fig2_demo_verify.png 与 out/fig2_demo_answer.png（3200x2000，未经编辑的真实运行截图）
+% 评测数字：v1 归档 pipeline_eval_v1_30_final.json（用户拍板版本）
+% ============================================================
+
+\section{Demonstration}\label{sec:demo}
+
+We demonstrate FirstCare as a single-file web application: the Python
+pipeline described in Sect.~\ref{sec:architecture} is ported line-by-line to
+the browser, with a slim corpus of all 1{,}341 structured cases and 36{,}715
+proposition keywords embedded, so that the full pipeline runs offline in the
+browser without any server. Two modes are provided: an offline deterministic
+mode (template generation, used for all figures in this paper) and a neural
+mode (Jev verification with LLM generation).\footnote{Demonstration URL will
+be provided upon publication.} All safeguards of Sect.~\ref{sec:architecture}
+---the hard gate, red-flag escalation, specificity check, split of
+\textit{supported} propositions, red-flag rescue, and the two-layer post-hoc
+fact guard---are ported unchanged. Multi-turn clarification is realized
+through follow-up chips: statements supplied by the user are accumulated with
+the original query and the full pipeline is re-run (the loop shown in
+Fig.~\ref{fig:arch}). To verify the porting fidelity, we compared the browser
+implementation against the Python backend on four queries covering a
+fever-complaint scenario that progressively reveals red-flag features; the
+three-state verdicts, top-2 candidates, urgency levels, cited cases, and
+post-hoc audit marks are bit-identical.
+
+The interface (Fig.~\ref{fig:demo}) consists of a patient dialogue panel on
+the left---query bubbles, a system verdict card (rendered as a red alert with
+an emergency route for red-flag cases), and follow-up chips derived from
+\textit{gap}/\textit{absent} elements, each of which supplies the missing
+element in a multi-turn fashion---and an algorithm-transparency panel on the
+right, organized as tabbed views of the four stages: retrieval candidates,
+proposition decomposition, two-question verification (with red-flag category
+badges), and the five-step triage output with audit badges (generation mode,
+red-flag escalation, Veto-2 scrubbing, and post-hoc fact guard). An evolution
+timeline above the tabs tracks the per-round confirmed/gap/absent counts, and
+a permanent disclaimer states that the output is triage guidance rather than a
+medical diagnosis. The interface supports bilingual (Chinese/English) display;
+dialogue content is shown in the original Chinese of the dataset.
+
+\begin{figure}[t]
+\centering
+\begin{minipage}[t]{0.495\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{fig2_demo_verify.png}
+  \small (a) Two-question verification panel
+\end{minipage}\hfill
+\begin{minipage}[t]{0.495\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{fig2_demo_answer.png}
+  \small (b) Five-step triage output with audit badges
+\end{minipage}
+\caption{FirstCare demonstration: a colloquial chest-pain consultation (``I
+have had chest pain for over seven hours, like a huge stone pressing on me, I
+can't catch my breath and I'm breaking out in cold sweat'') in offline
+deterministic mode with an English interface. (a)~The verification panel shows
+the three-state verdicts (1~supported, 13~gap, 46~absent) with red-flag
+category badges, the emergency-care verdict card, and follow-up chips. (b)~The
+triage panel shows the triggered red-flag escalation, the urgency card, the
+five-step structured output---with the \textit{Deductive fact mapping} section
+expanded, marking the matched red-flag proposition (\textit{the chest pain
+lasted about 7 hours and 24 minutes}, from CMCR case \textit{cmaid/1671920})
+as a case-derived feature pending verification rather than a patient-confirmed
+fact---and the cited cases. Static interface labels are bilingual; generated
+dialogue and output content remain in the original Chinese of the dataset.
+Screenshots are unedited outputs of the real pipeline.}
+\label{fig:demo}
+\end{figure}
+
+\subsection{End-to-End Evaluation}\label{sec:eval}
+
+We evaluated the full pipeline on CMCR-Colloquial with a stratified sample of
+30 colloquial queries (fever 10, abdominal pain 10, dyspnea 3, chest pain 3,
+severe headache 2, altered consciousness 2; fixed random seed; all answers
+generated in the LLM mode), judged by an LLM-based two-layer protocol: four
+safety vetoes---fabricated cases, dangerous triage direction, unsafe
+prescription advice, and fabricated patient facts, any of which fails the
+sample---followed by a six-dimension rubric out of 100 points (triage
+conclusion and responsiveness, 0--9; grounding in retrieved cases and
+guidelines, 0--40; differential reasoning, 0--17; fidelity to patient-stated
+facts, 0--18; lay accessibility and actionability, 0--8; and safety
+boundaries, 0--8).
+
+The mean rubric score is 71.4 (67.8 for the red-flag subset, 73.2 for the
+non-red-flag subset). No sample violates the fabricated-case or
+unsafe-prescription vetoes; the dangerous-direction veto and the
+fabricated-facts veto are each violated by one red-flag sample (3.3\%). The
+immediate-emergency-care recommendation is issued for 70\% of red-flag
+queries; the top-1 candidate after re-ranking matches the gold differential
+diagnosis in 86.7\% of samples; and all cited case identifiers are valid
+(100\%). We note two caveats: the sample size is small ($n=30$), and the judge
+shares the model pool with the generator, so self-preference bias cannot be
+excluded; the scores should be read as relative rather than absolute quality
+measures.
+
+% ============================================================
+% 参考文献无需新增条目。
+% 提交前待办：
+% 1. 将 out/fig2_demo_verify.png、out/fig2_demo_answer.png 拖入 Overleaf 工程；
+% 2. demo URL 脚注替换为真实托管地址；
+% 3. 若正文引用了 Table 1（评测表），须先从 v1 归档重新导出
+%    （export_latex_tables.py 当前导出的是 v2 版本）。
+% ============================================================
