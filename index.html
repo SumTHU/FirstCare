@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FirstCare · 低幻觉普惠医疗导诊演示系统</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #f5f7fa; color: #2c3e50; line-height: 1.6;
+    max-width: 1000px; margin: 0 auto; padding: 40px 24px;
+  }
+  h1 { font-size: 28px; margin-bottom: 8px; }
+  .subtitle { color: #7f8c9b; margin-bottom: 28px; }
+  .card {
+    background: #fff; border-radius: 12px; padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 24px;
+  }
+  .btn {
+    display: inline-block; background: #2563eb; color: #fff; text-decoration: none;
+    padding: 12px 28px; border-radius: 8px; font-size: 17px; font-weight: bold;
+  }
+  .btn:hover { background: #1d4ed8; }
+  .note { font-size: 14px; color: #7f8c9b; margin-top: 10px; }
+  video { width: 100%; border-radius: 8px; background: #000; }
+  h2 { font-size: 19px; margin-bottom: 12px; }
+  ul { margin-left: 20px; font-size: 14px; color: #556; }
+  a { color: #2563eb; }
+</style>
+</head>
+<body>
+  <h1>FirstCare</h1>
+  <p class="subtitle">低幻觉普惠医疗导诊演示系统 · ECIR 2027 Demo Track</p>
+
+  <div class="card">
+    <h2>交互式在线演示</h2>
+    <p style="margin-bottom:14px;">浏览器端完整移植真实管线（混合检索 → 双问题事实核验 → 接地生成），单文件内嵌 1,341 例语料，点击即用、无需安装。</p>
+    <a class="btn" href="medir_triage_ui_real.html">进入交互演示 →</a>
+  </div>
+
+  <div class="card">
+    <h2>演示视频（含字幕）</h2>
+    <video controls preload="metadata" src="data/video/demo_final_subtitled.mp4"></video>
+    <p class="note">完整流程：口语查询 → 混合检索 → 双问题事实核验 → 多轮澄清 → 红旗升级 → 接地生成。若播放卡顿可 <a href="data/video/demo_final_subtitled.mp4" download>下载视频</a>。</p>
+  </div>
+
+  <div class="card">
+    <h2>关于</h2>
+    <ul>
+      <li>数据底座：Chinese Clinical Case Repository (CMCR)，1,543 例源病例 → 1,341 例结构化病例 → 43,271 条原子命题</li>
+      <li>核验机制：Jev 双步事实核验（Mention p_men / Support p_sup，τ_f = 0.7 三态划分）</li>
+      <li>安全设计：红旗命题 supported 即触发"立即急诊"升级硬闸门；absent 命题进入生成前被物理剔除</li>
+      <li>源代码：<a href="https://github.com/SumTHU/FirstCare">github.com/SumTHU/FirstCare</a></li>
+    </ul>
+  </div>
+</body>
+</html>

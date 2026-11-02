@@ -37,3 +37,6 @@ cmcr_case_1673770_structured.json
 # 运行时生成的临时测试脚本不入库（_neural_body.js 为测试输入，保留）
 _*.js
 !_neural_body.js
+
+# 已被 fig1 英文版取代的过时架构图不入库（本地保留）
+out/medir_cmcr_pipeline.*

@@ -38,10 +38,11 @@ python experiments/evaluate_pipeline.py
 
 浏览器 Demo 直接用浏览器打开 `medir_triage_ui_real.html` 即可，无需安装依赖。
 
-## 演示视频
+## 在线演示与演示视频
 
-`data/video/demo_final_subtitled.mp4`（约 6MB，含字幕）：完整演示口语查询 → 混合检索 → 双问题事实核验 → 多轮澄清 → 红旗升级 → 接地生成的全流程。
-录制与合成脚本：`auto_record.py`（自动录制）、`make_narration.py`（旁白 TTS）、`compose_video.py`（拼接）、`burn_subtitles.py`（烧录字幕）。
+- **交互式在线演示**：<https://sumthu.github.io/FirstCare/medir_triage_ui_real.html>（GitHub Pages 托管，点开即用）
+- **演示视频**：<https://sumthu.github.io/FirstCare/>（落地页内嵌播放器），或原始文件 `data/video/demo_final_subtitled.mp4`（约 6MB，含字幕）：完整演示口语查询 → 混合检索 → 双问题事实核验 → 多轮澄清 → 红旗升级 → 接地生成的全流程。
+- 录制与合成脚本：`auto_record.py`（自动录制）、`make_narration.py`（旁白 TTS）、`compose_video.py`（拼接）、`burn_subtitles.py`（烧录字幕）。
 
 ## 引用与限制
 

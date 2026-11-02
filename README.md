@@ -38,10 +38,11 @@ python experiments/evaluate_pipeline.py
 
 For the browser demo, simply open `medir_triage_ui_real.html` in a browser — no dependencies required.
 
-## Demo Video
+## Live Demo & Demo Video
 
-`data/video/demo_final_subtitled.mp4` (~6 MB, subtitled): a complete walkthrough of colloquial query → hybrid retrieval → two-question fact verification → multi-turn clarification → red-flag escalation → grounded generation.
-Production scripts: `auto_record.py` (automated recording), `make_narration.py` (narration TTS), `compose_video.py` (stitching), `burn_subtitles.py` (subtitle burning).
+- **Interactive demo**: <https://sumthu.github.io/FirstCare/medir_triage_ui_real.html> (hosted via GitHub Pages, no installation needed)
+- **Demo video**: <https://sumthu.github.io/FirstCare/> (embedded player on the landing page), or the raw file `data/video/demo_final_subtitled.mp4` (~6 MB, subtitled): a complete walkthrough of colloquial query → hybrid retrieval → two-question fact verification → multi-turn clarification → red-flag escalation → grounded generation.
+- Production scripts: `auto_record.py` (automated recording), `make_narration.py` (narration TTS), `compose_video.py` (stitching), `burn_subtitles.py` (subtitle burning).
 
 ## Citation & Limitations
 
