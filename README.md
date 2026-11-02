@@ -41,14 +41,7 @@ For the browser demo, simply open `medir_triage_ui_real.html` in a browser — n
 ## Demo Video
 
 `data/video/demo_final_subtitled.mp4` (~6 MB, subtitled): a complete walkthrough of colloquial query → hybrid retrieval → two-question fact verification → multi-turn clarification → red-flag escalation → grounded generation.
-Production scripts: `auto_record.py` (automated recording), `make_narration.py` (narration TTS), `compose_video.py` (stitching), `burn_subtitles.py` (subtitle burning); see `demo视频录制方案.md` for the production plan.
-
-## Legacy Files (do not use as evaluation evidence)
-
-- **`app.py`**: early inline demo version (deprecated; not connected to the real pipeline), kept only for the legacy smoke test.
-- **`evaluate_fever_agent.py`**: legacy smoke test against the deprecated version above, with only 3 hand-crafted toy cases.
-  Its output is a development-time sanity check only and, given the tiny sample size, **must not be cited as benchmark results**.
-- **`project_plan_medir_cmcr.md`**: early planning document; the Gate criteria therein were acceptance targets set at project start, **not measured results**.
+Production scripts: `auto_record.py` (automated recording), `make_narration.py` (narration TTS), `compose_video.py` (stitching), `burn_subtitles.py` (subtitle burning).
 
 ## Citation & Limitations
 

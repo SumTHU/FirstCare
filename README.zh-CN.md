@@ -41,14 +41,7 @@ python experiments/evaluate_pipeline.py
 ## 演示视频
 
 `data/video/demo_final_subtitled.mp4`（约 6MB，含字幕）：完整演示口语查询 → 混合检索 → 双问题事实核验 → 多轮澄清 → 红旗升级 → 接地生成的全流程。
-录制与合成脚本：`auto_record.py`（自动录制）、`make_narration.py`（旁白 TTS）、`compose_video.py`（拼接）、`burn_subtitles.py`（烧录字幕），方案详见 `demo视频录制方案.md`。
-
-## 遗留文件说明（勿作为评测依据）
-
-- **`app.py`**：早期内联演示版（已废弃，未接真实管线），仅供遗留冒烟测试使用。
-- **`evaluate_fever_agent.py`**：针对上述废弃版本的遗留冒烟测试，仅 3 条手工构造用例，
-  输出仅用于开发期 sanity check，**样本量极小，不得作为基准结果引用**。
-- **`project_plan_medir_cmcr.md`**：早期规划文档，其中的 Gate 指标为当时设定的验收目标，**非实测结果**。
+录制与合成脚本：`auto_record.py`（自动录制）、`make_narration.py`（旁白 TTS）、`compose_video.py`（拼接）、`burn_subtitles.py`（烧录字幕）。
 
 ## 引用与限制
 

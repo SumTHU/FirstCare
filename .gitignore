@@ -14,3 +14,26 @@ out/cache/
 
 # 非项目产出的第三方文件
 ECIR_2027_IR_for_Good .pdf
+
+# 内部文档 / 论文稿不入库（本地保留）
+论文*
+ECIR2027*
+项目工作实况说明.md
+可视化平台设计说明.md
+参考文献对齐方案.md
+reference_entries_给coauthor.bib
+medical_collaborator_guide.md
+project_introduction.md
+project_plan_medir_cmcr.md
+data_pipeline_technical_report.md
+demo视频录制方案.md
+删改操作清单_OLD_NEW.txt
+
+# 废弃遗留文件不入库（本地保留）
+app.py
+evaluate_fever_agent.py
+cmcr_case_1673770_structured.json
+
+# 运行时生成的临时测试脚本不入库（_neural_body.js 为测试输入，保留）
+_*.js
+!_neural_body.js
