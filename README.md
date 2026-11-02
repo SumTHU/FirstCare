@@ -1,54 +1,60 @@
-# FirstCare (MedIR-CMCR)：低幻觉普惠医疗导诊演示系统
+# FirstCare: A Low-Hallucination, Grounded Medical Triage Demonstration System
 
-基于中国临床案例成果数据库（CMCR）与 Jev 双步事实核验（Mention & Support）的接地（grounded）医疗分诊系统。
-面向 **ECIR 2027 Demo Track** 投稿开发。
+English | [简体中文](README.zh-CN.md)
 
-## 系统组成
+FirstCare is a grounded, low-hallucination medical triage demonstration system built on the **Chinese Clinical Case Repository (CMCR)** and the **Jev two-step fact verification pipeline (Mention & Support)**.
+Developed for the **ECIR 2027 Demo Track** submission.
 
-| 模块 | 位置 | 说明 |
+## System Components
+
+| Module | Location | Description |
 |---|---|---|
-| 数据管线 | `src/data_pipeline/` | CMCR 原生 11 章节抽取（`jats_parser.py`、`cmcr_native_extractor.py`）、口语化问答构造（`colloquial_constructor.py`）、原子命题生成（`proposition_generator.py`） |
-| 混合检索 + 精排 | `src/retrieval/` | 字符级 1/2/3-gram 的 BM25 + TF-IDF 等权混合召回 Top-50，Jev 判别式逐点重排返回 Top-k（k=10） |
-| 双问题事实核验 | `src/verification/` | 对每条候选命题执行 Mention（p_men）与 Support（p_sup）检查，τ_f=0.7 三态划分 supported / gap / absent |
-| 接地生成 | `src/generation/` | absent 命题物理剔除并导出为追问 chips；红旗命题 supported 即触发"立即急诊"升级硬闸门；五步式结构化输出（模板 + LLM 双模式） |
-| 浏览器 Demo | `medir_triage_ui_real.html` | **单文件、无需服务端**：内嵌 1,341 例语料与 36,715 条命题，浏览器端逐行移植真实管线 |
-| 前后端对拍 | `compare_backend_frontend.py`、`smoke_test_pipeline.py` | 浏览器端 JS 管线与 Python 后端多场景逐位一致（top-2 / 三态计数 / 紧急度 / 引用 / chips 全 PASS） |
-| 端到端评测 | `experiments/evaluate_pipeline.py` | 30 条分层抽样端到端评分，LaTeX 结果表见 `out/table2_pipeline_eval.tex`（caption 含 LLM-judge 自我偏好声明） |
+| Data pipeline | `src/data_pipeline/` | CMCR native 11-section extraction (`jats_parser.py`, `cmcr_native_extractor.py`), colloquial QA construction (`colloquial_constructor.py`), atomic proposition generation (`proposition_generator.py`) |
+| Hybrid retrieval + reranking | `src/retrieval/` | Character-level 1/2/3-gram BM25 + TF-IDF (equal-weight) hybrid recall of Top-50 candidates, followed by pointwise Jev discriminative reranking returning Top-k (k=10) |
+| Two-question fact verification | `src/verification/` | For each candidate proposition, a Mention check (p_men) and a Support check (p_sup); three-state partition (supported / gap / absent) at threshold τ_f = 0.7 |
+| Grounded generation | `src/generation/` | Absent propositions are physically removed and exported as follow-up chips; a supported red-flag proposition triggers a hard "seek emergency care now" escalation gate; five-step structured output (template + LLM dual mode) |
+| Browser demo | `medir_triage_ui_real.html` | **Single file, no server required**: embeds the full 1,341-case corpus and 36,715 propositions; the browser-side JS is a line-by-line port of the real pipeline |
+| Frontend–backend parity tests | `compare_backend_frontend.py`, `smoke_test_pipeline.py` | The browser-side JS pipeline matches the Python backend bit-exactly across multiple scenarios (top-2 / three-state counts / urgency / citations / chips all PASS) |
+| End-to-end evaluation | `experiments/evaluate_pipeline.py` | End-to-end scoring on 30 stratified samples; LaTeX results table in `out/table2_pipeline_eval.tex` (caption includes the LLM-judge self-preference statement) |
 
-## 数据规模（实测）
+## Data Scale (measured)
 
-1,543 例 CMCR 源病例 → 1,341 例结构化病例 → 43,271 条原子命题（红旗占 23.0%，9,968 条）→ 1,339 条口语化问答。
+1,543 CMCR source cases → 1,341 structured cases → 43,271 atomic propositions (23.0% red-flag, 9,968) → 1,339 colloquial QA pairs.
 
-> ⚠️ 1,339 条口语问答当前均为 `draft` 状态，专家双盲审核尚未执行，**不得表述为 expert-verified**。
+> ⚠️ All 1,339 colloquial QA pairs are currently in `draft` status and the expert double-blind review has **not** been performed; they must **not** be described as expert-verified.
 
-## 快速开始
+## Quick Start
 
 ```bash
-# 1. 前后端对拍（验证浏览器端管线与 Python 后端一致）
+# 1. Frontend-backend parity test (verifies the browser pipeline against the Python backend)
 python compare_backend_frontend.py
 
-# 2. 管线冒烟测试
+# 2. Pipeline smoke test
 python smoke_test_pipeline.py
 
-# 3. 端到端评测（需配置 LLM API，见 .env.example）
+# 3. End-to-end evaluation (requires LLM API configuration, see .env.example)
 python experiments/evaluate_pipeline.py
 ```
 
-浏览器 Demo 直接用浏览器打开 `medir_triage_ui_real.html` 即可，无需安装依赖。
+For the browser demo, simply open `medir_triage_ui_real.html` in a browser — no dependencies required.
 
-## 演示视频
+## Demo Video
 
-`data/video/demo_final_subtitled.mp4`（约 6MB，含字幕）：完整演示口语查询 → 混合检索 → 双问题事实核验 → 多轮澄清 → 红旗升级 → 接地生成的全流程。
-录制与合成脚本：`auto_record.py`（自动录制）、`make_narration.py`（旁白 TTS）、`compose_video.py`（拼接）、`burn_subtitles.py`（烧录字幕），方案详见 `demo视频录制方案.md`。
+`data/video/demo_final_subtitled.mp4` (~6 MB, subtitled): a complete walkthrough of colloquial query → hybrid retrieval → two-question fact verification → multi-turn clarification → red-flag escalation → grounded generation.
+Production scripts: `auto_record.py` (automated recording), `make_narration.py` (narration TTS), `compose_video.py` (stitching), `burn_subtitles.py` (subtitle burning); see `demo视频录制方案.md` for the production plan.
 
-## 遗留文件说明（勿作为评测依据）
+## Legacy Files (do not use as evaluation evidence)
 
-- **`app.py`**：早期内联演示版（已废弃，未接真实管线），仅供遗留冒烟测试使用。
-- **`evaluate_fever_agent.py`**：针对上述废弃版本的遗留冒烟测试，仅 3 条手工构造用例，
-  输出仅用于开发期 sanity check，**样本量极小，不得作为基准结果引用**。
-- **`project_plan_medir_cmcr.md`**：早期规划文档，其中的 Gate 指标为当时设定的验收目标，**非实测结果**。
+- **`app.py`**: early inline demo version (deprecated; not connected to the real pipeline), kept only for the legacy smoke test.
+- **`evaluate_fever_agent.py`**: legacy smoke test against the deprecated version above, with only 3 hand-crafted toy cases.
+  Its output is a development-time sanity check only and, given the tiny sample size, **must not be cited as benchmark results**.
+- **`project_plan_medir_cmcr.md`**: early planning document; the Gate criteria therein were acceptance targets set at project start, **not measured results**.
 
-## 引用与限制
+## Citation & Limitations
 
-端到端评测样本量仅 30，LLM 裁判与生成器共用模型池存在自我偏好风险，引用评测数字时
-须保留 `out/table2_pipeline_eval.tex` caption 中的限定声明，不得表述为 prove / SOTA 类结论。
+The end-to-end evaluation uses only 30 stratified samples, and the LLM judge shares the same model pool as the generator, posing a self-preference risk.
+When citing any evaluation number, the qualification in the caption of `out/table2_pipeline_eval.tex` must be preserved; results must not be presented as prove/SOTA claims.
+
+## License
+
+Released under the [MIT License](LICENSE).
